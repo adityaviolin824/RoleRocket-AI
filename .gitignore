@@ -3,6 +3,6 @@ __pycache__/
 .gradio/
 cv-model/
 00-debugging/
-logs/
+logs/running_log.log
 input/
 .venv/
