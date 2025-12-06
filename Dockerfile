@@ -1,6 +1,6 @@
 FROM python:3.13-slim
 
-# Install system deps + Node.js
+# SYSTEM + NODE + BUILD DEPS
 RUN apt-get update -qq && \
     apt-get install -y \
         curl \
@@ -14,8 +14,11 @@ RUN apt-get update -qq && \
         libffi-dev && \
     curl -fsSL https://deb.nodesource.com/setup_20.x | bash - && \
     apt-get install -y nodejs && \
-    # INSTALL MCP SERVER BINARIES HERE
-    npm install -g @oevortex/ddg_search mcp-memory-libsql && \
+    # ✅ install MCP servers globally
+    npm install -g \
+        @modelcontextprotocol/server-fetch \
+        @oevortex/ddg_search \
+        mcp-memory-libsql && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 

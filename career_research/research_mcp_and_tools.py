@@ -162,22 +162,24 @@ def researcher_mcp_stdio_servers(
 ) -> List[MCPServerStdio]:
     """
     Build stdio MCP servers for:
-     - mcp-server-fetch (web content extraction)
-     - DuckDuckGo search (backup job search)
+      - mcp-server-fetch (web content extraction)
+      - DuckDuckGo search
     """
     servers: List[MCPServerStdio] = []
 
+    # Fetch MCP
     servers.append(
         MCPServerStdio(
             name="fetch_mcp",
             params={
-                "command": "uvx",
-                "args": ["mcp-server-fetch"],
+                "command": "mcp-server-fetch",
+                "args": [],
             },
             client_session_timeout_seconds=client_session_timeout_seconds,
         )
     )
 
+    # DuckDuckGo MCP
     servers.append(
         MCPServerStdio(
             name="ddg_mcp",
