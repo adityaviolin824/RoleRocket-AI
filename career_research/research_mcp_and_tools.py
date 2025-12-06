@@ -160,7 +160,7 @@ def search_jobs_adzuna(
 # ======================================
 
 def researcher_mcp_stdio_servers(
-    client_session_timeout_seconds: int = 120,
+    client_session_timeout_seconds: int = 300,
 ) -> List[MCPServerStdio]:
     """
     Build stdio MCP servers for:

@@ -37,7 +37,6 @@ dependencies = [
     "ensure>=1.0.0",
     "langsmith>=0.3.18",
     "easyocr",
-    "pytesseract",
     "python-docx"
 ]
 

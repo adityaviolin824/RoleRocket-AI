@@ -20,7 +20,7 @@ async def save_intake_answers_to_memory(
 
     ensure_memory_dir(params)
 
-    async with MCPServerStdio(params=params, client_session_timeout_seconds=30) as mcp_server:
+    async with MCPServerStdio(params=params, client_session_timeout_seconds=120) as mcp_server:
 
         try:
             await mcp_server.call_tool("delete_entity", {"name": "job_intake"})

@@ -29,7 +29,6 @@ python-box>=7.2.0
 ensure>=1.0.0
 langsmith>=0.3.18
 easyocr
-pytesseract
 python-docx
 
 # --- Development ---

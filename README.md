@@ -4,15 +4,26 @@
 
 ---
 
+## Live Demo
+
+🚀 **Frontend:** ######## WILL ADD LINK ########  
+🔌 **Backend API:** [https://rolerocket-ai.onrender.com](https://rolerocket-ai.onrender.com)
+
+⚠️ **Note:** First backend load may take 50 seconds due to free-tier cold start. Subsequent requests are instant and OCR features are disabled on live demo due to free-tier memory limitations. Text-based PDF resume parsing works fine. All other features fully functional.
+
+**Health Check:** Visit `/health` to wake up the service before testing.
+
+---
+
 ## Overview
 
 RoleRocket AI ingests your resume (PDF, DOCX, or image), extracts structured profile data, and runs a four-phase pipeline: intake and memory, research-optimized mini-profile generation, multi-source job research with deterministic scoring, and a presentation + advisor phase that produces both a ranked job report and targeted improvement guidance. It is built as an API-first system with a FastAPI backend and a Streamlit frontend, designed to be demoable and inspected in interviews.
 
 ---
 
-## Why it’s interesting
+## Why it's interesting
 
-- Uses coordinated “agent teams” across multiple phases instead of a single LLM prompt.
+- Uses coordinated "agent teams" across multiple phases instead of a single LLM prompt.
 - Separates deterministic scoring (pure Python) from LLM-based reasoning and presentation, making behavior explainable and auditable.
 - Lets users not only see matched roles but also select specific roles and request deeper, role-specific advice.
 
@@ -30,8 +41,8 @@ RoleRocket AI ingests your resume (PDF, DOCX, or image), extracts structured pro
    - Includes target role, years of experience (user-override or computed from dates), preferred locations, remote preference, salary target, and a small set of high-signal skills.
 
 3. **Multi-source job research & deterministic scoring**
-   - Three “junior” researcher agents query multiple job sources and tools (APIs + MCP-backed tools like search/fetch) in parallel.
-   - A “senior” researcher merges results, aggressively deduplicates jobs, and keeps 8–12 best matches per run.
+   - Three "junior" researcher agents query multiple job sources and tools (APIs + MCP-backed tools like search/fetch) in parallel.
+   - A "senior" researcher merges results, aggressively deduplicates jobs, and keeps 8–12 best matches per run.
    - A scoring engine in Python computes compatibility for each job along dimensions like:
      - Role/title fit
      - Skill overlap
@@ -42,7 +53,7 @@ RoleRocket AI ingests your resume (PDF, DOCX, or image), extracts structured pro
 
 4. **Presentation & tailored advice**
    - A presenter agent turns the scored jobs into a human-readable markdown report (`presenter_output.md`) with:
-     - Ranked roles, scores, and short “why it fits” explanations.
+     - Ranked roles, scores, and short "why it fits" explanations.
      - Matched vs missing skills and quick next-step suggestions.
    - The user then selects roles they care about most.
    - An advisor phase generates a second markdown report (`profile_improvement_output.md`) with role-specific recommendations on:
@@ -77,7 +88,7 @@ RoleRocket AI ingests your resume (PDF, DOCX, or image), extracts structured pro
   Provides a multi-step UX: upload, status tracking, viewing matches, selecting roles, and reading/downloadable reports.
 
 - **Deployment-ready**  
-  Backend deployed to Render; frontend deployed via Streamlit Cloud (or similar), suitable for live demos.
+  Backend deployed to Render; frontend deployed via Streamlit Cloud, suitable for live demos.
 
 ---
 
@@ -105,7 +116,7 @@ RoleRocket AI ingests your resume (PDF, DOCX, or image), extracts structured pro
   - JSON outputs (aggregation, scores) and markdown outputs (reports) in `outputs/`.
 - **Deployment**:
   - Backend deployed on Render.
-  - Frontend deployed via Streamlit Cloud (or another simple host) pointing to the API.
+  - Frontend deployed via Streamlit Cloud pointing to the API.
 
 ---
 
@@ -114,26 +125,24 @@ RoleRocket AI ingests your resume (PDF, DOCX, or image), extracts structured pro
 - `job_aggregation.json` – Aggregated, deduplicated jobs and metadata from all researcher agents.
 - `compatibility_scores.json` – Deterministic scoring results, including per-dimension scores and overall compatibility.
 - `presenter_output.md` – Human-facing, ranked job recommendations with explanations.
-- `profile_improvement_output.md` – Role-specific improvement guide for the user’s selected roles.
+- `profile_improvement_output.md` – Role-specific improvement guide for the user's selected roles.
 
 ---
+
+## Why this is interview-ready
+
+- **System design**: Shows a clear, multi-phase architecture with separation of concerns (intake, research, scoring, presentation, advisor).
+- **Agentic workflows**: Demonstrates multi-agent coordination across junior/senior roles and multiple tools/sources.
+- **Deterministic + AI hybrid**: Combines deterministic scoring logic with LLM-based reasoning and presentation, making the system both explainable and flexible.
+- **API + UX + deployment**: Covers backend APIs, a usable frontend, and real hosting, reflecting how production AI features are actually shipped.
 
 ---
 
 ## Getting started
 
-This repository is designed as an API first service with a simple frontend on top. You can run it locally or deploy the backend and frontend separately.
+This repository is designed as an API-first service with a simple frontend on top. You can run it locally or deploy the backend and frontend separately.
+
+### Local Development
 
 1. Clone the repository and install dependencies:
 
-   ```bash
-   git clone https://github.com/<your-username>/RoleRocket-AI.git
-   cd RoleRocket-AI
-
-   python -m venv .venv
-   # Windows: .venv\Scripts\activate
-   # macOS/Linux: source .venv/bin/activate
-
-   pip install -r requirements.txt
-
-   Or can use UV and directly run uv sync, that will automatically create the required environment
