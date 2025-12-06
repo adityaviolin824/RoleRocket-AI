@@ -5,7 +5,7 @@ import time
 import math
 
 
-API_URL = "https://rolerocket-ai.onrender.com"
+API_URL = "https://rolerocket-ai-v2.onrender.com"
 REQUEST_TIMEOUT = 240
 
 

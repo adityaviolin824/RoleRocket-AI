@@ -157,29 +157,25 @@ def search_jobs_adzuna(
 
 
 
+
 def researcher_mcp_stdio_servers(
     client_session_timeout_seconds: int = 300,
 ) -> List[MCPServerStdio]:
-    """
-    Build stdio MCP servers for:
-      - mcp-server-fetch (web content extraction)
-      - DuckDuckGo search
-    """
     servers: List[MCPServerStdio] = []
 
-    # Fetch MCP
+    # ✅ Fetch MCP (Python, robust)
     servers.append(
         MCPServerStdio(
             name="fetch_mcp",
             params={
-                "command": "mcp-server-fetch",
-                "args": [],
+                "command": "python",
+                "args": ["-m", "mcp_server_fetch"],
             },
             client_session_timeout_seconds=client_session_timeout_seconds,
         )
     )
 
-    # DuckDuckGo MCP
+    # ✅ DuckDuckGo MCP (already working)
     servers.append(
         MCPServerStdio(
             name="ddg_mcp",
@@ -194,34 +190,36 @@ def researcher_mcp_stdio_servers(
     return servers
 
 
+
 # def researcher_mcp_stdio_servers(
 #     client_session_timeout_seconds: int = 300,
 # ) -> List[MCPServerStdio]:
 #     """
 #     Build stdio MCP servers for:
 #       - mcp-server-fetch (web content extraction)
-#       - DuckDuckGo search (backup job search)
-#     The caller is responsible for using them in an async context.
+#       - DuckDuckGo search
 #     """
 #     servers: List[MCPServerStdio] = []
 
+#     # Fetch MCP
 #     servers.append(
 #         MCPServerStdio(
 #             name="fetch_mcp",
 #             params={
-#                 "command": "uvx",
-#                 "args": ["mcp-server-fetch"],
+#                 "command": "mcp-server-fetch",
+#                 "args": [],
 #             },
 #             client_session_timeout_seconds=client_session_timeout_seconds,
 #         )
 #     )
 
+#     # DuckDuckGo MCP
 #     servers.append(
 #         MCPServerStdio(
 #             name="ddg_mcp",
 #             params={
-#                 "command": "npx",
-#                 "args": ["-y", "@oevortex/ddg_search@latest"],
+#                 "command": "ddg-search-mcp",
+#                 "args": [],
 #             },
 #             client_session_timeout_seconds=client_session_timeout_seconds,
 #         )

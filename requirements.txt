@@ -24,3 +24,4 @@ ensure>=1.0.0
 # easyocr
 python-docx
 numpy
+mcp-server-fetch

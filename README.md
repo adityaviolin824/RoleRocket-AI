@@ -1,17 +1,17 @@
 # RoleRocket AI
 
-> Agentic end-to-end AI career assistant that turns your resume and preferences into job matches, compatibility scores, and tailored profile-improvement advice for your chosen roles.
+> Agentic end-to-end career assistant that turns your resume and preferences into job matches, compatibility scores, and tailored profile-improvement advice for your chosen roles.
 
 ---
 
 ## Live Demo
 
 🚀 **Frontend:** ######## WILL ADD LINK ########  
-🔌 **Backend API:** [https://rolerocket-ai.onrender.com](https://rolerocket-ai.onrender.com)
+🔌 **Backend API:** [https://rolerocket-ai-v2.onrender.com](https://rolerocket-ai.onrender.com)
 
-⚠️ **Note:** First backend load may take 50 seconds due to free-tier cold start. Subsequent requests are instant and OCR features are disabled on live demo due to free-tier memory limitations. Text-based PDF resume parsing works fine. All other features fully functional.
+⚠️ **Note:** First backend load may take 50 seconds due to free-tier cold start. Subsequent requests are instant. OCR features are commented out on live demo due to free-tier memory limitations. Text-based PDF/DOCX resume parsing works fine. All other features fully functional. API is deployed using Docker.
 
-**Health Check:** Visit `/health` to wake up the service before testing.
+
 
 ---
 
@@ -110,7 +110,7 @@ RoleRocket AI ingests your resume (PDF, DOCX, or image), extracts structured pro
   - `/intake`, `/start_research`, `/status`, `/aggregation`,
   - `/save_selection`, `/start_improvement`, `/download`, `/download_improvement`, `/reset`, `/health`
 - **Frontend**: Streamlit app for the full user journey.
-- **Agent orchestration**: Custom agent runners with MCP-backed tools for job search and web research.
+- **Agent orchestration**: Custom agent runners with MCP-backed tools for job search and web research. Uses MCP servers for job search and web research (DuckDuckGo search MCP, fetch MCP, and a LibSQL backed memory MCP for user profile persistence)
 - **Memory & artifacts**:
   - SQLite (`userprofile.db`) for user profile memory.
   - JSON outputs (aggregation, scores) and markdown outputs (reports) in `outputs/`.
@@ -129,9 +129,9 @@ RoleRocket AI ingests your resume (PDF, DOCX, or image), extracts structured pro
 
 ---
 
-## Why this is interview-ready
+## Stuff about this project that makes me happy
 
-- **System design**: Shows a clear, multi-phase architecture with separation of concerns (intake, research, scoring, presentation, advisor).
+- **System design**: Shows a clear, multi-phase architecture with separation of concerns (intake, research, scoring, presentation, advisor). Also uses structured logging and explicit pipeline stage markers so failures are easy to debug and reason about.
 - **Agentic workflows**: Demonstrates multi-agent coordination across junior/senior roles and multiple tools/sources.
 - **Deterministic + AI hybrid**: Combines deterministic scoring logic with LLM-based reasoning and presentation, making the system both explainable and flexible.
 - **API + UX + deployment**: Covers backend APIs, a usable frontend, and real hosting, reflecting how production AI features are actually shipped.
