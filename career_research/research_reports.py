@@ -3,6 +3,8 @@ Utilities for generating debug reports for the Career Research pipeline.
 Outputs clean markdown summarizing the entire job aggregation result.
 """
 
+# THIS IS FOR DEBUGGING, NOT REALLY USED IN PIPELINE
+
 import json
 import datetime
 from pathlib import Path
@@ -56,7 +58,6 @@ def write_debug_markdown(
     lines.append(json.dumps(result["profile"], indent=2))
     lines.append("```")
 
-    # Best Matches
     lines.append("\n## Best Matches (Ranked)")
     for job in result["jobs"]:
         data = job.model_dump()
@@ -83,16 +84,13 @@ def write_debug_markdown(
         lines.append(f"- Reason: {data.get('reason', 'No reason provided')}")
         lines.append("")
 
-    # All Aggregated Jobs
     lines.append("\n## All Aggregated Jobs (Deduplicated)")
 
-    # Source Breakdown
     lines.append("\n## Source Breakdown")
     lines.append("```")
     lines.append(json.dumps(result["aggregation"].source_breakdown, indent=2))
     lines.append("```")
 
-    # Raw Search Criteria
     lines.append("\n## Raw Search Criteria")
     lines.append("```")
     search_criteria_dict = {
@@ -102,5 +100,4 @@ def write_debug_markdown(
     lines.append(json.dumps(search_criteria_dict, indent=2))
     lines.append("```")
 
-    # Write to file
     Path(output_path).write_text("\n".join(lines), encoding="utf-8")

@@ -18,13 +18,10 @@ async def save_intake_answers_to_memory(
     if params is None:
         params = MCP_PARAMS
 
-    # Ensure memory directory exists
     ensure_memory_dir(params)
 
-    # Connect to MCP memory server
     async with MCPServerStdio(params=params, client_session_timeout_seconds=30) as mcp_server:
 
-        # Delete previous intake entity if present so this acts like an overwrite
         try:
             await mcp_server.call_tool("delete_entity", {"name": "job_intake"})
             print("[Memory] Deleted existing job_intake entity")
@@ -45,9 +42,7 @@ async def save_intake_answers_to_memory(
 
         print("[Memory] Saved intake answers to memory")
 
-        # -----------------------------
-        # Debug Snapshot
-        # -----------------------------
+        # NEEDED FOR REVIEW WHEN HANDLING WEIRD FORMATS
         print("\n================= INTAKE SNAPSHOT =================\n")
         for key, value in intake_answers.items():
             print(f"{key}: {value}")

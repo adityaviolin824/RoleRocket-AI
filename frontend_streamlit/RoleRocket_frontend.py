@@ -5,15 +5,13 @@ import time
 import math
 
 
-# API Configuration
-API_URL = "http://127.0.0.1:8000"
+API_URL = "http://127.0.0.1:8000" # will change after deployment
 REQUEST_TIMEOUT = 45
 
 
 st.set_page_config(page_title="RoleRocket AI", page_icon="🚀", layout="wide")
 
 
-# Initialize session state
 if "view" not in st.session_state:
     st.session_state.view = "upload"
 if "last_status" not in st.session_state:
@@ -64,9 +62,7 @@ def _upload_and_queue(uploaded_file, preferences):
         return False, str(e)
 
 
-# ----------------------
-# Helper: small HTML spinner and styling
-# ----------------------
+
 _SPINNER_HTML = """
 <style>
     .spinner-container {{
@@ -121,7 +117,6 @@ def _render_loading_block(html_placeholder, progress_placeholder, title, subtitl
     html = _SPINNER_HTML.format(title=title, subtitle=subtitle)
     html_placeholder.markdown(html, unsafe_allow_html=True)
     
-    # Render progress bar in separate placeholder
     try:
         if progress_fraction is None:
             frac = (math.sin(time.time() / 2) + 1) / 2  # pulsing effect
@@ -200,15 +195,12 @@ def _poll_until(target_step=None):
     return check_status()
 
 
-# Header
 st.title("🚀 RoleRocket AI")
 st.markdown("*This rocket is powered by Agentic fuel* 🔥")
 st.markdown("**Launch your next role with AI-powered matching and personalized guidance.** Upload your resume to begin.")
 
 
-# =========================
-# VIEW 1: UPLOAD
-# =========================
+
 if st.session_state.view == "upload":
     st.write("Upload your resume and share a few preferences so our system can find good role matches for you.")
 
@@ -260,9 +252,7 @@ if st.session_state.view == "upload":
                     st.error(f"❌ Upload failed: {msg}")
 
 
-# =========================
-# VIEW 2: INTAKE PROCESSING
-# =========================
+
 elif st.session_state.view == "intake_processing":
     st.subheader("📥 Processing Your Resume")
     st.write("Our system is extracting key details from your resume to build a profile for job matching.")
@@ -295,9 +285,7 @@ elif st.session_state.view == "intake_processing":
             reset_pipeline()
 
 
-# =========================
-# VIEW 3: RESEARCH & PRESENT PROCESSING
-# =========================
+
 elif st.session_state.view == "research_processing":
     st.subheader("🔍 Finding the best roles for you")
     st.write("We are searching opportunities and preparing a concise report of role matches tailored to your profile.")
@@ -322,9 +310,7 @@ elif st.session_state.view == "research_processing":
             reset_pipeline()
 
 
-# =========================
-# VIEW 4: RESULTS
-# =========================
+
 elif st.session_state.view == "results":
     st.subheader("✅ Your Personalized Job Matches")
     col1, col2 = st.columns([3, 1])
@@ -366,9 +352,7 @@ elif st.session_state.view == "results":
         reset_pipeline()
 
 
-# =========================
-# VIEW 5: JOB SELECTION FOR GUIDANCE
-# =========================
+
 elif st.session_state.view == "job_selection":
     st.subheader("💡 Select Roles for Profile Improvement Guidance")
     st.write("Choose the roles you're most interested in, and we'll provide tailored guidance on how to strengthen your profile for those positions.")
@@ -465,9 +449,7 @@ elif st.session_state.view == "job_selection":
                     st.error(f"❌ Error: {str(e)}")
 
 
-# =========================
-# VIEW 6: IMPROVEMENT PROCESSING
-# =========================
+
 elif st.session_state.view == "improvement_processing":
     st.subheader("💡 Generating Profile Improvement Recommendations")
     st.write("Our AI advisor is analyzing your profile against the selected roles and preparing personalized guidance.")
@@ -493,9 +475,7 @@ elif st.session_state.view == "improvement_processing":
             st.rerun()
 
 
-# =========================
-# VIEW 7: IMPROVEMENT RESULTS
-# =========================
+
 elif st.session_state.view == "improvement_results":
     st.subheader("🗺️ Your Career Roadmap")
     col1, col2 = st.columns([3, 1])

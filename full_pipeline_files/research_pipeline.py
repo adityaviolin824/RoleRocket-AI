@@ -13,7 +13,6 @@ from career_research.research_pipeline import run_career_research
 
 logger = logging.getLogger(__name__)
 
-# load config
 config = read_yaml(Path("config/master_config.yaml"))
 MEMORY_DB_PATH = config.memory_path
 JOB_AGGREGATION_PATH = config.researcher_job_aggregation
@@ -33,7 +32,6 @@ async def run_research_pipeline(
     logger.info("<<<< RESEARCH_PIPELINE_START >>>>")
     logger.info("MEMORY_DB_PATH: %s", memory_db_path)
 
-    # 1) Career research
     try:
         logger.info("<<<< [1/2] CAREER_RESEARCH_START >>>>")
         research_result = await run_career_research(
@@ -46,7 +44,6 @@ async def run_research_pipeline(
         logger.info("<<<< RESEARCH_PIPELINE_ABORTED >>>>")
         raise
 
-    # 2) Persist JobAggregation JSON
     try:
         logger.info("<<<< [2/2] SAVE_JOB_AGGREGATION_JSON_START >>>>")
         profile = research_result.get("profile", {})
@@ -68,12 +65,3 @@ async def run_research_pipeline(
 
     logger.info("<<<< RESEARCH_PIPELINE_END >>>>")
     return str(Path(job_agg_path).resolve())
-
-
-# optional local test entrypoint
-if __name__ == "__main__":
-    try:
-        logging.info("Running research pipeline locally")
-        asyncio.run(run_research_pipeline())
-    except Exception as e:
-        logging.error("RESEARCH_PIPELINE_LOCAL_FAILED: %s", CustomException(e, sys))

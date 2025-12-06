@@ -20,7 +20,6 @@ def researcher_mcp_stdio_servers(
     """
     servers: List[MCPServerStdio] = []
 
-    # Fetch MCP server - extracts full content from URLs
     servers.append(
         MCPServerStdio(
             name="fetch_mcp",
@@ -32,7 +31,6 @@ def researcher_mcp_stdio_servers(
         )
     )
 
-    # DuckDuckGo MCP server - web search backup
     servers.append(
         MCPServerStdio(
             name="ddg_mcp",

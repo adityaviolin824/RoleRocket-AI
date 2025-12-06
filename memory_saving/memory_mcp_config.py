@@ -3,7 +3,6 @@
 from pathlib import Path
 from typing import Dict, Any
 
-# Single source of truth for the memory MCP config
 MCP_PARAMS: Dict[str, Any] = {
     "command": "npx",
     "args": ["-y", "mcp-memory-libsql"],

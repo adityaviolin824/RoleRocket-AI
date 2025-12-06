@@ -18,9 +18,6 @@ from memory_saving.memory_mcp_config import MCP_PARAMS, ensure_memory_dir
 
 load_dotenv(override=True)
 
-# =========================
-# Global OCR reader (EasyOCR - lazy loaded)
-# =========================
 _ocr_reader = None
 
 
@@ -102,8 +99,8 @@ def compute_experience_summary(parsed_resume: dict) -> dict:
             {
                 "title": title,
                 "company": company,
-                "start_date": start_raw,   # raw strings only, no parsing
-                "end_date": end_raw,       # raw strings only, no parsing
+                "start_date": start_raw,   
+                "end_date": end_raw,       
                 "current": current_flag,
                 "type": rtype,
             }
@@ -239,7 +236,6 @@ def extract_text_from_pdf(path: Path) -> str:
                 page_stats["total_pages"] += 1
                 print(f"[PDF] Page {page_num}/{len(pdf.pages)}")
 
-                # Method 1: Native text (fastest)
                 native_text = page.extract_text() or ""
                 if native_text.strip():
                     text_chunks.append(native_text.strip())
@@ -247,7 +243,6 @@ def extract_text_from_pdf(path: Path) -> str:
                     print(f"[PDF] Page {page_num}: Native ({len(native_text)} chars)")
                     continue
 
-                # Method 2: Page OCR
                 try:
                     page_img = page.to_image(resolution=300)
                     ocr_text = ocr_image_pil(page_img.original)
@@ -259,7 +254,6 @@ def extract_text_from_pdf(path: Path) -> str:
                 except Exception as e:
                     print(f"[PDF] Page {page_num} OCR failed: {e}")
 
-                # Method 3: Tables
                 tables = page.extract_tables()
                 table_text = []
                 for table_num, table in enumerate(tables or []):
@@ -273,7 +267,6 @@ def extract_text_from_pdf(path: Path) -> str:
                     page_stats["ocr_pages"] += 1
                     continue
 
-                # Method 4: Full-page high-res OCR
                 try:
                     full_img = page.to_image(resolution=400)
                     full_ocr = ocr_image_pil(full_img.original)
@@ -315,7 +308,6 @@ def extract_text_from_docx(path: Path) -> str:
         full_text: List[str] = []
         print(f"[DOCX] Processing {path.name}")
 
-        # Method 1: Paragraphs
         para_count = 0
         for p in doc.paragraphs:
             para_text = [run.text.strip() for run in p.runs if run.text.strip()]
@@ -323,7 +315,6 @@ def extract_text_from_docx(path: Path) -> str:
                 full_text.append(" ".join(para_text))
                 para_count += 1
 
-        # Method 2: Tables
         table_count = 0
         for table in doc.tables:
             for row in table.rows:
@@ -338,7 +329,6 @@ def extract_text_from_docx(path: Path) -> str:
 
         print(f"[DOCX] Extracted: {para_count} paras, {table_count} tables")
 
-        # Method 3: XML fallback for textboxes
         xml_text = extract_text_from_docx_xml(path)
         if xml_text.strip():
             full_text.append(xml_text)
@@ -584,12 +574,10 @@ async def pipeline_process_resume_file(
     print(f"Companies:                   {companies_str}")
     print(f"Roles:                       {roles_str}")
 
-    # Contributions summary
     contributions = parsed_resume.get("contributions", []) or []
     contrib_count = len(contributions)
     print("\n---------------- CONTRIBUTIONS ----------------\n")
     print(f"Total contributions detected: {contrib_count}")
-    # Print up to 6 sample contributions to avoid spamming terminal
     for i, c in enumerate(contributions[:6], start=1):
         print(f"{i}. {c}")
     if contrib_count > 6:

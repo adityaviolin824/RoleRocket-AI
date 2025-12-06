@@ -41,7 +41,6 @@ async def run_presenter_pipeline(
     Uses the provided paths (falls back to module-level defaults).
     Returns path to the final presenter markdown output.
     """
-    # 1. Scoring
     try:
         logging.info("Starting scoring step")
         logging.info("Using input_agg_path=%s scored_out_path=%s", input_agg_path, scored_out_path)
@@ -54,7 +53,6 @@ async def run_presenter_pipeline(
         logging.error("Scoring failed: %s", CustomException(e, sys))
         raise
 
-    # 1.5 Fetch user profile from memory DB and attach to scored payload
     try:
         logging.info(
             "Attempting to fetch user profile from memory DB at %s",
@@ -69,8 +67,7 @@ async def run_presenter_pipeline(
                 type(profile),
             )
         else:
-            # fetch_user_profile returns {"resume": ..., "preferences": ...}
-            # Presenter prompt expects "resume" and "intake"
+
             if "preferences" in profile and "intake" not in profile:
                 profile["intake"] = profile.pop("preferences")
 
@@ -84,13 +81,11 @@ async def run_presenter_pipeline(
             )
 
     except Exception as e:
-        # Do not fail the whole pipeline if profile is missing or broken
         logging.warning(
             "Could not fetch user profile from memory DB, continuing without it: %s",
             CustomException(e, sys),
         )
 
-    # 2. Presenter
     try:
         logging.info("Preparing presenter task")
 
@@ -117,7 +112,6 @@ async def run_presenter_pipeline(
             logging.warning("Presenter response unusable, using fallback")
             output_text = _fallback_template_presenter(scored)
 
-        # Save markdown
         os.makedirs(os.path.dirname(presenter_md_path) or ".", exist_ok=True)
         now = datetime.utcnow().isoformat(" ", "seconds") + " UTC"
 
@@ -131,7 +125,6 @@ async def run_presenter_pipeline(
             f.write(md_content)
 
         logging.info("Presenter output saved at %s", presenter_md_path)
-        # return an absolute resolved path
         try:
             return str(Path(presenter_md_path).resolve())
         except Exception:

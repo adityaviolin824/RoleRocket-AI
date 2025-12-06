@@ -61,7 +61,6 @@ async def lifespan(app: FastAPI):
     
     yield
     
-    # Shutdown
     logger.info("🛑 Job Research Pipeline API Shutting Down")
 
 # ============================================================================
@@ -200,14 +199,12 @@ async def _run_improvement_task():
         selection_path = INPUT_DIR / "user_selected_jobs.json"
         output_path = OUTPUT_DIR / "profile_improvement_output.md"
         
-        # Load selection data
         logger.info(f"   📂 Loading selection from {selection_path.name}")
         with open(selection_path, 'r', encoding='utf-8') as f:
             selection_data = json.load(f)
         
         logger.info(f"   ✅ Loaded {selection_data.get('selected_count', 0)} jobs")
         
-        # Run the improvement pipeline
         logger.info(f"   🤖 Calling run_profile_improvement_pipeline()...")
         result = await run_profile_improvement_pipeline()
         logger.info(f"   ✅ Pipeline function returned successfully!")
@@ -218,7 +215,6 @@ async def _run_improvement_task():
         
         logger.info(f"   📊 Pipeline: {status} ({successful}/{total} successful)")
         
-        # Build markdown output
         logger.info(f"   📝 Building markdown output...")
         markdown_output = f"# Profile Improvement Report\n\n"
         markdown_output += f"**Generated:** {result.get('timestamp', 'N/A')}\n\n"
@@ -240,12 +236,10 @@ async def _run_improvement_task():
         
         logger.info(f"   📝 Markdown built ({len(markdown_output)} chars)")
         
-        # Save to file
         logger.info(f"   💾 Saving to {output_path.name}...")
         output_path.parent.mkdir(parents=True, exist_ok=True)
         output_path.write_text(markdown_output, encoding="utf-8")
         
-        # Verify file was written
         if output_path.exists():
             file_size = output_path.stat().st_size
             logger.info(f"   ✅ File saved successfully ({file_size} bytes)")

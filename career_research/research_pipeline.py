@@ -53,12 +53,12 @@ from career_research.career_researcher_agent import (
 from career_research.research_mcp_and_tools import (
     researcher_mcp_stdio_servers,
 )
-from career_research.research_reports import write_debug_markdown  # <- new import
+from career_research.research_reports import write_debug_markdown  
 
 logger = logging.getLogger(__name__)
 
 
-
+# We need this coz searching can get crowded when we enter the entire resume and profile (this makes searching crisp)
 def minimize_profile(full_profile: dict) -> dict:
     """
     Reduce profile size for junior agents to avoid context issues.
@@ -91,19 +91,15 @@ def minimize_profile(full_profile: dict) -> dict:
     # ----------------------
     raw_skills = resume.get("top_technical_skills") or []
 
-    # Common “low-signal” languages for filtering
     low_signal_langs = {
-        # Generic programming languages
         "python", "java", "c++", "c", "c#", "javascript", "js",
         "typescript", "go", "golang", "ruby", "php", "rust",
         "kotlin", "swift", "scala",
 
-        # Generic soft skills (never useful for search)
         "communication", "leadership", "teamwork", "collaboration",
         "problem solving", "critical thinking", "creativity",
 
-        # Generic non-tech resume filler
-        "english", "hindi", "marathi", "bengali",
+        "english", "hindi", "marathi", "spanish", "german", "french", "russian", "japanese"
         "sales", "marketing", "management",
         "microsoft office", "excel", "powerpoint", "word",
     }
@@ -118,14 +114,14 @@ def minimize_profile(full_profile: dict) -> dict:
         if s_clean.lower() not in low_signal_langs:
             high_signal.append(s_clean)
 
-    # If we found any high-signal ones, use those; otherwise fall back to the original list
+    # PRIORITIZE HIGH SIGNAL SKILLS
     if high_signal:
         top_skills = high_signal[:3]
     else:
         top_skills = [s for s in raw_skills if isinstance(s, str) and s.strip()][:3]
 
     # ----------------------
-    # Experience: prefer user-reported over resume estimate
+    # Experience: prefer user-reported over resume estimate (internships/research can create mismatches)
     # ----------------------
     user_years = prefs.get("user_reported_years_experience")
     if user_years is not None:
@@ -136,7 +132,7 @@ def minimize_profile(full_profile: dict) -> dict:
 
     return {
         "preferred_role": prefs.get("preferred_role"),
-        "locations": combined_locations,          # plural list for agents to handle
+        "locations": combined_locations,        
         "remote_preference": prefs.get("remote_preference", "any"),
         "target_salary_lpa": prefs.get("target_salary_lpa"),
         "years_experience": years_experience,
@@ -189,7 +185,6 @@ async def run_career_research(
     Main entrypoint for the job role research stage.
     """
     try:
-        # 1. Load profile
         profile = await fetch_user_profile_async(memory_db_path)
         mini_profile = minimize_profile(profile)
 
@@ -200,14 +195,12 @@ async def run_career_research(
             bool(profile.get("preferences")),
         )
 
-        # 2. Start MCP servers and create agents inside their context
         async with AsyncExitStack() as stack:
             mcp_servers = []
             for server in researcher_mcp_stdio_servers():
                 entered = await stack.enter_async_context(server)
                 mcp_servers.append(entered)
 
-            # 2a. Create junior source specific agents
             jsearch_agent, adzuna_agent, ddg_agent = (
                 await create_multi_source_career_research_agents(
                     model=model,
@@ -215,13 +208,11 @@ async def run_career_research(
                 )
             )
 
-            # 2b. Create senior aggregation agent
             senior_agent = await create_senior_researcher_agent(
                 model=model,
                 mcp_servers=mcp_servers,
             )
 
-            # 3. Build task for juniors (use minimized profile)
             base_task = (
                 "You receive a small JSON profile with these keys: "
                 "preferred_role, locations, remote_preference, target_salary_lpa, years_experience, top_skills.\n"
@@ -237,7 +228,6 @@ async def run_career_research(
             )
 
 
-            # 4. Run juniors in parallel with tracing and safety
             with trace("Junior_Researchers_Finding_Best_Roles"):
                 jsearch_output, adzuna_output, ddg_output = await asyncio.gather(
                     safe_run_junior(jsearch_agent, base_task),
@@ -245,7 +235,6 @@ async def run_career_research(
                     safe_run_junior(ddg_agent, base_task),
                 )
 
-            # 5. Build task for senior agent
             senior_task = (
                 "# CANDIDATE PROFILE\n"
                 f"{json.dumps(mini_profile, indent=2)}\n\n"
@@ -302,7 +291,6 @@ async def run_career_research(
 
 
 
-            # 6. Run senior aggregation
             with trace("Senior_Researcher_Reviewing_Research"):
                 senior_run = await Runner.run(
                     senior_agent,
@@ -317,7 +305,6 @@ async def run_career_research(
                 error_detail=sys,
             )
 
-        # 7. Build combined result
         return {
             "profile": profile,
             "jobs": senior_output.best_matches,

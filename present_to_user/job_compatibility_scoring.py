@@ -20,7 +20,6 @@ WEIGHTS = {
     "salary": 0.10,
 }
 
-# Tunables
 MAX_SKILL_DENOM = 3  # denominator for skills ratio (cap)
 MIN_SALARY_NEUTRAL_SCORE = 1.0  # score when no salary info (0..3 scale)
 ROLE_SIMILARITY_FULL = 0.75  # ratio above which role considered a strong match
@@ -72,13 +71,10 @@ def score_role(preferred_role: str, title: str) -> Tuple[float, float]:
             return 0.0, 0.0
         p = preferred_role.strip().lower()
         t = title.strip().lower()
-        # fuzzy similarity using SequenceMatcher
         sim = SequenceMatcher(None, p, t).ratio()
-        # Map similarity 0..1 to 0..3, but reward strong matches above ROLE_SIMILARITY_FULL
         score = _clamp(sim * 3.0, 0.0, 3.0)
-        # If preferred role is direct substring, boost slightly
         if p in t or any(tok for tok in p.split() if tok and tok in t):
-            score = max(score, 1.2)  # ensure at least some credit for substring matches
+            score = max(score, 1.2) 
         return round(score, 3), round(sim, 3)
     except Exception:
         logging.exception("score_role failed")
@@ -93,15 +89,14 @@ def score_skills(user_skills: List[str], job_required: List[str], job_preferred:
         for j in job_low:
             if j not in job_low_unique:
                 job_low_unique.append(j)
-        # compute exact and substring overlaps
         overlap = []
         for u in user_low:
             for j in job_low_unique:
                 if u == j or u in j or j in u:
                     overlap.append(j)
                     break
-        overlap = list(dict.fromkeys(overlap))  # preserve order, dedupe
-        denom = max(1, min(MAX_SKILL_DENOM, len(job_low_unique)))  # avoid division by zero
+        overlap = list(dict.fromkeys(overlap))  
+        denom = max(1, min(MAX_SKILL_DENOM, len(job_low_unique)))  
         ratio = len(overlap) / denom
         score = _clamp(ratio * 3.0, 0.0, 3.0)
         return round(score, 3), overlap
@@ -116,15 +111,12 @@ def score_experience(user_exp: float, job_exp_text: str) -> float:
             return 0.0
         nums = _num_list_from_text(job_exp_text)
         if not nums:
-            # no explicit requirement: give a modest credit if user has some experience
             return 1.0 if user_exp >= 1.0 else 0.0
-        # interpret requirement as the max or median of numbers (robust)
         required = max(nums)
         if required <= 0:
             return 0.0
         if user_exp >= required:
             return 3.0
-        # proportional scale: fraction of requirement achieved, scaled to 0..3
         ratio = user_exp / required
         score = _clamp(ratio * 3.0, 0.0, 3.0)
         return round(score, 3)
@@ -135,7 +127,6 @@ def score_experience(user_exp: float, job_exp_text: str) -> float:
 
 def score_location(user_loc: str, job_loc: str, remote_pref: str, remote_type: str) -> Tuple[float, str]:
     try:
-        # remote compatibility
         remote_pref_l = (remote_pref or "").strip().lower()
         remote_type_l = (remote_type or "").strip().lower()
 
@@ -144,15 +135,12 @@ def score_location(user_loc: str, job_loc: str, remote_pref: str, remote_type: s
             j = job_loc.strip().lower()
             if u == j:
                 return 3.0, "exact_city_match"
-            # token overlap (city or country)
             u_tokens = set(re.split(r"[,\-\/\s]+", u))
             j_tokens = set(re.split(r"[,\-\/\s]+", j))
             if u_tokens & j_tokens:
                 return 2.0, "token_overlap"
-        # remote check
         if remote_pref_l and remote_type_l and remote_pref_l in remote_type_l:
             return 2.0, "remote_compatible"
-        # if job is remote and user has flexible preference treat mildly positive
         if remote_type_l and ("remote" in remote_type_l) and (remote_pref_l in ("remote", "hybrid", "any")):
             return 1.5, "job_remote_user_flexible"
         return 0.0, "no_match"
@@ -163,13 +151,10 @@ def score_location(user_loc: str, job_loc: str, remote_pref: str, remote_type: s
 
 def score_salary(exp_salary: float, min_sal: float, max_sal: float) -> Tuple[float, str]:
     try:
-        # If user hasn't stated expectation, treat salary dimension as neutral (1)
         if exp_salary is None:
             return 1.0, "no_expectation"
-        # No salary info from job: neutral score (not penalizing)
         if min_sal is None and max_sal is None:
             return MIN_SALARY_NEUTRAL_SCORE, "salary_unknown"
-        # compute median job salary if both present, else take the present one
         try:
             if min_sal is not None and max_sal is not None:
                 median = (float(min_sal) + float(max_sal)) / 2.0
@@ -178,13 +163,10 @@ def score_salary(exp_salary: float, min_sal: float, max_sal: float) -> Tuple[flo
         except Exception:
             logging.debug("salary conversion failed", exc_info=True)
             return 0.0, "salary_parse_error"
-        # if job meets or exceeds expectation => full score
         if median >= exp_salary:
             return 3.0, "meets_expectation"
-        # proportional mapping: ratio = median / exp_salary, scaled
         ratio = median / exp_salary if exp_salary > 0 else 0.0
         score = _clamp(ratio * 3.0, 0.0, 3.0)
-        # human-friendly labels for reasoning
         if ratio >= 0.8:
             label = "near_expectation"
         elif ratio >= 0.5:
@@ -198,7 +180,6 @@ def score_salary(exp_salary: float, min_sal: float, max_sal: float) -> Tuple[flo
 
 
 def label_fit(overall: float) -> str:
-    # overall is 0..100
     if overall >= 70:
         return "strong"
     if overall >= 50:
@@ -226,7 +207,6 @@ def score_job(profile: Dict[str, Any], job: Dict[str, Any]) -> Dict[str, Any]:
         l, location_reason = score_location(user_loc, job.get("location_area", "") or "", remote_pref, job.get("remote_type", "") or "")
         sal, salary_reason = score_salary(exp_salary, job.get("salary_min"), job.get("salary_max"))
 
-        # Weighted sum: each dim is 0..3, divide by 3 to normalize to 0..1, then *100
         weighted_sum = (
             r * WEIGHTS["role"] +
             s * WEIGHTS["skills"] +
@@ -238,7 +218,6 @@ def score_job(profile: Dict[str, Any], job: Dict[str, Any]) -> Dict[str, Any]:
         overall = round(_clamp(overall, 0.0, 100.0), 2)
         fit_level = label_fit(overall)
 
-        # key_gaps: be conservative in reporting
         key_gaps = []
         if s < 1.5:
             key_gaps.append("skills_low")
@@ -249,7 +228,6 @@ def score_job(profile: Dict[str, Any], job: Dict[str, Any]) -> Dict[str, Any]:
         if sal < 1.0:
             key_gaps.append("salary_unknown_or_low")
 
-        # confidence approx: average dimension (0..3) scaled to 0..1
         confidence = round((r + s + e + l + sal) / (3.0 * len(WEIGHTS)), 3)
 
         return {

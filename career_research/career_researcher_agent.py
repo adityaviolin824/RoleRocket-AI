@@ -21,7 +21,6 @@ from utils.exception import CustomException
 
 from agents import Agent, AgentOutputSchema
 
-# NEW: import prompt configs
 from career_research.career_research_prompts_config import (
     JUNIOR_BASE_JOB_FETCH_INSTRUCTIONS,
     JUNIOR_JSEARCH_FALLBACK_RULES,

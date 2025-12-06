@@ -28,9 +28,7 @@ USER_SELECTION_PATH = "input/user_selected_jobs.json"
 PROFILE_IMPROVEMENT_MAX_TURNS = 2
 
 
-# ---------------------------
-# Helpers for safe cleanup
-# ---------------------------
+
 async def _safe_server_cleanup(server):
     """Best-effort cleanup for an MCP server; swallow CancelledError."""
     try:
@@ -53,9 +51,7 @@ async def _safe_runner_close(runner: Runner):
         logging.debug("Safe cleanup: exception while closing runner: %s", e, exc_info=True)
 
 
-# ---------------------------
-# Core helpers
-# ---------------------------
+
 async def _load_user_profile_from_memory() -> Dict[str, Any]:
     """Load user profile from memory database."""
     try:
@@ -157,10 +153,8 @@ async def _run_advisor_for_job(
             company,
         )
 
-        # Build task for this specific job
         task = build_profile_improvement_task(job, user_profile)
 
-        # Run the agent
         with trace(f"Profile Improvement - {job_title}"):
             result = await runner.run(
                 profile_improvement_agent,
@@ -217,7 +211,6 @@ async def run_profile_improvement_pipeline(
     """
     #### print("#### PROFILE_IMPROVEMENT_PIPELINE: start") ####
 
-    # Load user selection if not provided
     if selection_data is None:
         selection_data = _load_user_selection()
 
@@ -240,10 +233,8 @@ async def run_profile_improvement_pipeline(
             "message": "User selection file contains no jobs",
         }
 
-    # Load user profile
     user_profile = await _load_user_profile_from_memory()
 
-    # Setup runner
     close_runner = False
     if runner is None:
         runner = Runner()
@@ -261,7 +252,6 @@ async def run_profile_improvement_pipeline(
 
         #### print(f"#### DEBUG: selected_jobs count = {len(selected_jobs)}") ####
 
-        # Setup MCP servers (once for all jobs)
         try:
             servers = researcher_mcp_stdio_servers(
                 client_session_timeout_seconds=mcp_client_session_timeout_seconds
@@ -280,7 +270,6 @@ async def run_profile_improvement_pipeline(
                         "Connection to MCP server %s was cancelled",
                         getattr(server, "name", "unknown"),
                     )
-                    # do not re-raise here; allow outer flow to handle cancellation
                     return {
                         "status": "failed",
                         "error": "cancelled",
@@ -306,7 +295,6 @@ async def run_profile_improvement_pipeline(
         except Exception as e:
             logging.error("Failed to setup MCP servers: %s", CustomException(e, sys))
 
-        # Process each job
         results: List[Dict[str, Any]] = []
         successful_count = 0
 
@@ -325,7 +313,6 @@ async def run_profile_improvement_pipeline(
             if "error" not in result:
                 successful_count += 1
 
-        # Determine overall status
         if successful_count == len(selected_jobs):
             status = "success"
         elif successful_count > 0:
@@ -348,15 +335,12 @@ async def run_profile_improvement_pipeline(
             "results": results,
         }
 
-        # If caller requested writing markdown, build and write it here (safer)
         if output_path:
             try:
                 outp = Path(output_path)
                 outp.parent.mkdir(parents=True, exist_ok=True)
 
-                #### print(f"#### DEBUG: Attempting to write markdown to {outp.resolve()}") ####
 
-                # Build markdown from results
                 markdown_output = f"# Profile Improvement Report\n\n"
                 markdown_output += f"**Generated:** {result_dict.get('timestamp', '')}\n\n"
                 markdown_output += f"**Jobs Analyzed:** {result_dict.get('total_jobs', 0)}\n\n"
@@ -372,10 +356,8 @@ async def run_profile_improvement_pipeline(
                     markdown_output += job_result.get('summary_text', 'No recommendations available')
                     markdown_output += "\n\n---\n\n"
 
-                # Use asyncio.to_thread + shield to avoid cancellation killing the file write
                 await asyncio.shield(asyncio.to_thread(outp.write_text, markdown_output, "utf-8"))
                 logging.info("Wrote profile improvement markdown to %s", outp.resolve())
-                #### print(f"#### DEBUG: WROTE file {outp.resolve()} size={outp.stat().st_size}") ####
                 result_dict["output_path"] = str(outp.resolve())
             except Exception as e:
                 logging.exception("Failed to write improvement markdown: %s", e)
@@ -388,7 +370,6 @@ async def run_profile_improvement_pipeline(
 
     except asyncio.CancelledError as e:
         logging.warning("Profile improvement pipeline was cancelled: %s", e)
-        #### print(f"#### DEBUG: pipeline cancelled: {e}") ####
         return {
             "status": "failed",
             "error": "cancelled",
@@ -397,7 +378,6 @@ async def run_profile_improvement_pipeline(
 
     except Exception as e:
         logging.error("Profile improvement pipeline failed: %s", CustomException(e, sys))
-        #### print(f"#### DEBUG: unexpected exception in pipeline: {e}") ####
         return {
             "status": "failed",
             "error": "pipeline_exception",
@@ -405,7 +385,6 @@ async def run_profile_improvement_pipeline(
         }
 
     finally:
-        # Cleanup: restore agent state (non-blocking best-effort cleanup for external resources)
         try:
             if original_tools is not None:
                 profile_improvement_agent.tools = original_tools
@@ -423,14 +402,12 @@ async def run_profile_improvement_pipeline(
         except Exception:
             logging.debug("Failed to restore original mcp_servers", exc_info=True)
 
-        # Schedule best-effort background cleanup for MCP servers (do not await here)
         for server in active_mcp_servers:
             try:
                 asyncio.create_task(_safe_server_cleanup(server))
             except Exception as e:
                 logging.debug("Failed to schedule safe cleanup for MCP server %s: %s", getattr(server, "name", "unknown"), e)
 
-        # Schedule best-effort runner close if we created it (do not await here)
         if close_runner:
             try:
                 asyncio.create_task(_safe_runner_close(runner))

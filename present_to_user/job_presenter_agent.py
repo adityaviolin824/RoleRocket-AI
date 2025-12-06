@@ -174,13 +174,10 @@ def _fallback_template_presenter(scored_data: Dict[str, Any]) -> str:
     """
 
     try:
-        # Prefer fully scored matches if available
         best = scored_data.get("scored_best_matches")
         if not best:
-            # Some pipelines may only have aggregation.best_matches
             best = scored_data.get("aggregation", {}).get("best_matches", [])
         if not best:
-            # Last resort, try compatibility_scores if it is a list of job like dicts
             compat = scored_data.get("compatibility_scores", [])
             best = compat if isinstance(compat, list) else []
 

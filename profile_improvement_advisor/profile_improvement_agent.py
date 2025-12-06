@@ -87,24 +87,23 @@ Your tasks:
 """
 
 # Better performance honestly
-profile_improvement_agent = Agent(
-    name="Profile Improvement Advisor",
-    model="gpt-4.1-mini",
-    instructions=PROFILE_IMPROVEMENT_INSTRUCTIONS,
-    model_settings=ModelSettings(
-        temperature=0.4,
-    ),
-)
-# from openai.types.shared import Reasoning
 # profile_improvement_agent = Agent(
 #     name="Profile Improvement Advisor",
-#     model="gpt-5-mini",
+#     model="gpt-4.1-mini",
 #     instructions=PROFILE_IMPROVEMENT_INSTRUCTIONS,
 #     model_settings=ModelSettings(
-#         reasoning=Reasoning(effort="medium"),
-#         verbosity="medium",
+#         temperature=0.4,
 #     ),
 # )
+from openai.types.shared import Reasoning
+profile_improvement_agent = Agent(
+    name="Profile Improvement Advisor",
+    model="gpt-5-mini",
+    instructions=PROFILE_IMPROVEMENT_INSTRUCTIONS,
+    model_settings=ModelSettings(
+        reasoning=Reasoning(effort="medium"),
+    ),
+)
 
 
 

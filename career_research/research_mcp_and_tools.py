@@ -73,7 +73,6 @@ def search_jobs_jsearch(
         resp.raise_for_status()
         data = resp.json()
 
-        # ✅ CRITICAL: Limit results before returning to agent
         if "data" in data and len(data["data"]) > max_results:
             original_count = len(data["data"])
             data["data"] = data["data"][:max_results]
@@ -100,8 +99,8 @@ def search_jobs_jsearch(
 def search_jobs_adzuna(
     query: str,
     country: str = "us",
-    results_per_page: int = 5,    # Default 5 (was 10)
-    max_results: int = 5,         # Post-process limit
+    results_per_page: int = 5,   
+    max_results: int = 5,        
 ) -> Dict[str, Any]:
     """
     Adzuna FREE API - LIMITED OUTPUT for agent context safety.
@@ -113,8 +112,7 @@ def search_jobs_adzuna(
                 "ADZUNA_APP_ID or ADZUNA_APP_KEY not configured",
                 error_detail=None,
             )
-
-        # Map agent country codes → Adzuna supported countries
+        # API Requires this stuff
         country_map = {
             "us": "us", "in": "in", "ph": "sg", "sg": "sg",
             "ca": "ca", "gb": "gb", "au": "au"
@@ -125,9 +123,9 @@ def search_jobs_adzuna(
         params = {
             "app_id": ADZUNA_APP_ID,
             "app_key": ADZUNA_APP_KEY,
-            "what": [query],  # Array for better matching
+            "what": [query],  
             "results_per_page": min(results_per_page, max_results),
-            "sort_by": "date",  # Recent jobs first
+            "sort_by": "date",  # Recent jobs first (realtimr/week results)
         }
 
         logger.info(
@@ -139,7 +137,7 @@ def search_jobs_adzuna(
         resp.raise_for_status()
         data = resp.json()
 
-        # ✅ CRITICAL: Limit results before returning to agent
+        # ADDED LIMITS coz tokens were sometimes exceeding limits due to repeated searches
         if "results" in data and len(data["results"]) > max_results:
             original_count = len(data["results"])
             data["results"] = data["results"][:max_results]
@@ -172,7 +170,6 @@ def researcher_mcp_stdio_servers(
     """
     servers: List[MCPServerStdio] = []
 
-    # Fetch MCP server - extracts full content from URLs
     servers.append(
         MCPServerStdio(
             name="fetch_mcp",
@@ -184,7 +181,6 @@ def researcher_mcp_stdio_servers(
         )
     )
 
-    # DuckDuckGo MCP server - web search backup
     servers.append(
         MCPServerStdio(
             name="ddg_mcp",
@@ -199,7 +195,7 @@ def researcher_mcp_stdio_servers(
     return servers
 
 
-# NOT USING FOR NOW #
+# NOT USING IN PROJECT - KEPT FOR FUTURE INTEGRATIONS #
 def playwright_mcp_stdio_server(
     client_session_timeout_seconds: int = 120,
 ) -> MCPServerStdio:

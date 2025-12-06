@@ -13,7 +13,6 @@ from present_to_user.present_jobs_pipeline import run_presenter_pipeline
 
 logger = logging.getLogger(__name__)
 
-# load config
 config = read_yaml(Path("config/master_config.yaml"))
 INPUT_AGG_PATH = config.input_agg_path
 SCORED_OUT_PATH = config.scored_out_path
@@ -41,7 +40,6 @@ async def run_presenter_only_pipeline(
     logger.info("PRESENTER_MD_PATH (target): %s", presenter_md_path)
     logger.info("MEMORY_DB_PATH (target): %s", memory_db_path)
 
-    # 1) Scoring / compatibility scoring
     try:
         logger.info("<<<< [1/2] SCORING_START >>>>")
         scored = add_scores_to_aggregation(input_agg_path, scored_out_path)
@@ -52,10 +50,8 @@ async def run_presenter_only_pipeline(
         logger.info("<<<< PRESENTER_PIPELINE_ABORTED >>>>")
         raise
 
-    # 2) Run presenter (this function encapsulates building the prompt and running the presenter agent)
     try:
         logger.info("<<<< [2/2] PRESENTER_START >>>>")
-        # pass the job-specific paths through to the presenter so it doesn't use global defaults
         presenter_md_path_ret = await run_presenter_pipeline(
             input_agg_path=input_agg_path,
             scored_out_path=scored_out_path,
@@ -70,17 +66,7 @@ async def run_presenter_only_pipeline(
         raise
 
     logger.info("<<<< PRESENTER_PIPELINE_END >>>>")
-    # normalize path if returned
     try:
         return str(Path(presenter_md_path_ret).resolve())
     except Exception:
         return str(presenter_md_path_ret)
-
-
-# optional local test entrypoint
-if __name__ == "__main__":
-    try:
-        logging.info("Running presenter pipeline locally")
-        asyncio.run(run_presenter_only_pipeline())
-    except Exception as e:
-        logging.error("PRESENTER_PIPELINE_LOCAL_FAILED: %s", CustomException(e, sys))

@@ -98,7 +98,6 @@ def fetch_user_profile(
             logger.info("Closed memory DB connection")
 
     except CustomException:
-        # Already logged and wrapped, just bubble up
         raise
     except Exception as e:
         logger.error("Error fetching user profile from memory DB")
