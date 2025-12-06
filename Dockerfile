@@ -1,6 +1,6 @@
 FROM python:3.13-slim
 
-# SYSTEM + NODE + BUILD DEPS
+# System deps + Node.js
 RUN apt-get update -qq && \
     apt-get install -y \
         curl \
@@ -14,19 +14,20 @@ RUN apt-get update -qq && \
         libffi-dev && \
     curl -fsSL https://deb.nodesource.com/setup_20.x | bash - && \
     apt-get install -y nodejs && \
-    # ✅ install MCP servers globally
-    npm install -g \
-        @modelcontextprotocol/server-fetch \
-        @oevortex/ddg_search \
-        mcp-memory-libsql && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
 WORKDIR /app
 
 COPY requirements.txt .
-RUN pip install --no-cache-dir --upgrade pip && \
+
+# IMPORTANT: install uv so `uvx` exists, then your usual requirements
+RUN pip install --no-cache-dir --upgrade pip uv && \
     pip install --no-cache-dir -r requirements.txt
+
+# IMPORTANT: install Node-based MCP servers globally
+# - DO NOT install @modelcontextprotocol/server-fetch (it 404s, fetch is Python based)
+RUN npm install -g @oevortex/ddg_search mcp-memory-libsql
 
 COPY . .
 RUN mkdir -p input memory outputs config
