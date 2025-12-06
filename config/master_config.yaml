@@ -1,0 +1,11 @@
+memory_path: "memory/userprofile.db"
+
+researcher_job_aggregation: "outputs/job_aggregation.json"
+
+input_agg_path: "outputs/job_aggregation.json"
+
+scored_out_path: "outputs/compatibility_scores.json"
+
+presenter_md_path: "outputs/presenter_output.md"
+
+llm: 'gpt-4.1-mini'
