@@ -3,11 +3,12 @@
 from pathlib import Path
 from typing import Dict, Any
 
-MCP_PARAMS: Dict[str, Any] = {
-    "command": "npx",
-    "args": ["-y", "mcp-memory-libsql"],
-    "env": {"LIBSQL_URL": "file:./memory/userprofile.db"},
+MCP_PARAMS = {
+    "command": "mcp-memory-libsql",  # Direct binary (npm install -g)
+    "args": [],
+    "env": {"LIBSQL_URL": "file:./memory/userprofile.db"}
 }
+
 
 
 def ensure_memory_dir(params: Dict[str, Any] | None = None) -> Path:

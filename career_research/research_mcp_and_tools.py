@@ -155,18 +155,15 @@ def search_jobs_adzuna(
         logger.error("Error during Adzuna call: %s", str(e))
         raise CustomException(e, error_detail=sys)
 
-# ======================================
-# MCP SERVER HELPERS (unchanged)
-# ======================================
+
 
 def researcher_mcp_stdio_servers(
     client_session_timeout_seconds: int = 300,
 ) -> List[MCPServerStdio]:
     """
     Build stdio MCP servers for:
-      - mcp-server-fetch (web content extraction)
-      - DuckDuckGo search (backup job search)
-    The caller is responsible for using them in an async context.
+     - mcp-server-fetch (web content extraction)
+     - DuckDuckGo search (backup job search)
     """
     servers: List[MCPServerStdio] = []
 
@@ -185,29 +182,11 @@ def researcher_mcp_stdio_servers(
         MCPServerStdio(
             name="ddg_mcp",
             params={
-                "command": "npx",
-                "args": ["-y", "@oevortex/ddg_search@latest"],
+                "command": "ddg-search-mcp",
+                "args": [],
             },
             client_session_timeout_seconds=client_session_timeout_seconds,
         )
     )
 
     return servers
-
-
-# NOT USING IN PROJECT - KEPT FOR FUTURE INTEGRATIONS #
-def playwright_mcp_stdio_server(
-    client_session_timeout_seconds: int = 120,
-) -> MCPServerStdio:
-    """
-    Build stdio MCP server for Playwright (browser automation).
-    Use for scraping dynamic job sites if needed.
-    """
-    return MCPServerStdio(
-        name="playwright_mcp",
-        params={
-            "command": "npx",
-            "args": ["@playwright/mcp@latest"],
-        },
-        client_session_timeout_seconds=client_session_timeout_seconds,
-    )

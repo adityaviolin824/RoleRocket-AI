@@ -6,7 +6,7 @@ import math
 
 
 API_URL = "https://rolerocket-ai.onrender.com"
-REQUEST_TIMEOUT = 120
+REQUEST_TIMEOUT = 240
 
 
 st.set_page_config(page_title="RoleRocket AI", page_icon="🚀", layout="wide")

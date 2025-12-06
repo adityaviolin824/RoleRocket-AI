@@ -6,3 +6,4 @@ cv-model/
 logs/running_log.log
 input/
 .venv/
+.streamlit/
