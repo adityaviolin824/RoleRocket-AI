@@ -2,87 +2,75 @@
   "profile": {
     "resume": {
       "type": "resume_profile",
-      "full_name": "",
-      "email": "",
-      "headline": "",
-      "location": "",
-      "years_experience": 0.0,
-      "top_technical_skills": [
-        "Dreamweaver",
-        "InDesign",
-        "Flash",
-        "QuarkXPress",
-        "Photoshop",
-        "Illustrator",
-        "PowerPoint",
-        "Word",
-        "Excel",
-        "Outlook",
-        "Adobe Acrobat",
-        "website design",
-        "animation experience",
-        "web-based advertising",
-        "social networking channels"
+      "full_name": "Taylor Anderson",
+      "email": "taylor@email.com",
+      "headline": "Certified Accountant",
+      "location": "New York, NY",
+      "years_experience": 5.0,
+      "top_technical_skills": [],
+      "summary": "Detail-oriented and certified accountant with over 5 years of experience in financial reporting; tax compliance, and budget management; Skilled in leveraging advanced financial software to optimize reporting accuracy and efficiency: Recognized for driving cost-saving initiatives and streamlining processes to support organizational goals. Seeking to contribute financial expertise to a progressive; growth-focused firm.",
+      "companies": [
+        "Future Financial Solutions"
       ],
-      "summary": "",
-      "companies": [],
-      "roles": [],
-      "contributions": [
-        "Company: Coordinated all phases of the graphic design and print production processes for large format signage to print collateral ephemera as well as web banners and ads",
-        "Company: Performed routine cleaning and preventative maintenance on graphics equipment and coordinated with maintenance and vendor for repair",
-        "Company: Assisted in the creation and implementation of department procedures",
-        "Company: Provided technical support and graphics procedures training to Account Specialists and Customer Service Representatives as required",
-        "Company: Utilized personal computer graphics software to generate electronic artwork and revised existing artwork to meet customer specifications",
-        "Company: Created materials in alignment with the client\u2019s brand and style requirements",
-        "Company: Created artwork and plate-ready negatives from customer-supplied artwork and concepts",
-        "Company: Produced illustrations for documents associated with scientific and engineering activities",
-        "Company: Collaborated with the communication team and client partners to develop and launch brands, logos, images and style guides",
-        "Company: Completed projects by coordinating with outside agencies, art services, printers, etc.",
-        "Company: Established positive working relationships with representatives of community organizations, state/local agencies and associations, city management and staff, and the public"
+      "roles": [
+        "Senior Accountant"
       ],
-      "top_contributions": [
-        "Company: Coordinated all phases of the graphic design and print production processes for large format signage to print collateral ephemera as well as web banners and ads",
-        "Company: Performed routine cleaning and preventative maintenance on graphics equipment and coordinated with maintenance and vendor for repair",
-        "Company: Assisted in the creation and implementation of department procedures",
-        "Company: Provided technical support and graphics procedures training to Account Specialists and Customer Service Representatives as required",
-        "Company: Utilized personal computer graphics software to generate electronic artwork and revised existing artwork to meet customer specifications",
-        "Company: Created materials in alignment with the client\u2019s brand and style requirements",
-        "Company: Created artwork and plate-ready negatives from customer-supplied artwork and concepts",
-        "Company: Produced illustrations for documents associated with scientific and engineering activities",
-        "Company: Collaborated with the communication team and client partners to develop and launch brands, logos, images and style guides",
-        "Company: Completed projects by coordinating with outside agencies, art services, printers, etc."
-      ]
+      "contributions": [],
+      "top_contributions": []
     },
     "preferences": {
       "preferred_role": "Manager",
-      "user_reported_years_experience": 2.0,
+      "user_reported_years_experience": 5.5,
       "preferred_locations": [
-        "Mumbai",
-        "Bangalore"
+        "London",
+        "Leeds",
+        "Manchester"
       ],
       "remote_preference": "hybrid",
-      "target_salary_lpa": 10,
+      "target_salary_lpa": 100,
       "willing_to_relocate": true,
       "career_goals": "Build impactful products and achieve financial independence"
     }
   },
   "aggregation": {
     "source_breakdown": {
-      "jsearch": 5,
-      "adzuna": 3,
-      "ddg": 1
+      "jsearch": 3,
+      "adzuna": 2,
+      "ddg": 0
     },
     "best_matches": [
       {
-        "title": "General Manager- Fairfield by Marriott Bengaluru Rajajinagar",
-        "company": "Marriott International, Inc",
-        "location_area": "Bengaluru",
+        "title": "Manager, Council of the Americas",
+        "company": "Americas Society/Council of the Americas",
+        "location_area": "Washington, DC",
         "salary_min": null,
         "salary_max": null,
-        "salary_currency": "INR",
+        "salary_currency": "USD",
         "job_type": "full_time",
-        "remote_type": "remote",
-        "job_url": "https://careers.marriott.com/general-manager-fairfield-by-marriott-bengaluru-rajajinagar/job/58C43E6988493AF18A28CB330CD94E3A?utm_campaign=google_jobs_apply&utm_source=google_jobs_apply&utm_medium=organic",
+        "remote_type": "onsite",
+        "job_url": "https://www.linkedin.com/jobs/view/manager-council-of-the-americas-at-americas-society-council-of-the-americas-4325535249?utm_campaign=google_jobs_apply&utm_source=google_jobs_apply&utm_medium=organic",
+        "source": "jsearch",
+        "required_skills": null,
+        "preferred_skills": null,
+        "experience_required": "4\u20137 years combined professional experience",
+        "matched_criteria": [
+          "role",
+          "location",
+          "experience"
+        ],
+        "additional_comments": null,
+        "reason": "Role matches Manager and experience fits, location not preferred but onsite."
+      },
+      {
+        "title": "Campaign Manager (Clean Transportation / Climate)",
+        "company": "Scion Staffing",
+        "location_area": "Washington, DC",
+        "salary_min": 95000.0,
+        "salary_max": 110000.0,
+        "salary_currency": "USD",
+        "job_type": "full_time",
+        "remote_type": "onsite",
+        "job_url": "https://www.linkedin.com/jobs/view/campaign-manager-clean-transportation-climate-at-scion-staffing-4322540718?utm_campaign=google_jobs_apply&utm_source=google_jobs_apply&utm_medium=organic",
         "source": "jsearch",
         "required_skills": null,
         "preferred_skills": null,
@@ -92,171 +80,72 @@
           "location"
         ],
         "additional_comments": null,
-        "reason": "Role matches Manager, location Bengaluru same as user preference, remote type remote fits hybrid preference."
+        "reason": "Role matches Manager, location outside preferred but onsite."
       },
       {
-        "title": "Manager, TWC Monitoring & Governance",
-        "company": "Standard Chartered India",
-        "location_area": "India",
+        "title": "Branch Sales Manager",
+        "company": "Carrier Enterprise",
+        "location_area": "Alexandria, VA",
         "salary_min": null,
         "salary_max": null,
-        "salary_currency": "INR",
+        "salary_currency": "USD",
         "job_type": "full_time",
         "remote_type": "onsite",
-        "job_url": "https://in.linkedin.com/jobs/view/manager-twc-monitoring-governance-at-standard-chartered-india-4325875883?utm_campaign=google_jobs_apply&utm_source=google_jobs_apply&utm_medium=organic",
-        "source": "jsearch",
-        "required_skills": [
-          "Working capital products",
-          "Credit approval",
-          "Excel competency"
-        ],
-        "preferred_skills": null,
-        "experience_required": "Chartered Accountant/MBA",
-        "matched_criteria": [
-          "role",
-          "location"
-        ],
-        "additional_comments": "Experience level and skills slightly senior but plausible for 2 years with relevant qualifications.",
-        "reason": "Exact Manager title, location India matches, skills related to finance role."
-      },
-      {
-        "title": "IN_Manager-Markets - Secondment-Clients & Industries -IFS_Mumbai",
-        "company": "PwC India",
-        "location_area": "Mumbai, Maharashtra",
-        "salary_min": null,
-        "salary_max": null,
-        "salary_currency": "INR",
-        "job_type": "full_time",
-        "remote_type": "onsite",
-        "job_url": "https://in.linkedin.com/jobs/view/in-manager-markets-secondment-clients-industries-ifs-mumbai-at-pwc-india-4342218165?utm_campaign=google_jobs_apply&utm_source=google_jobs_apply&utm_medium=organic",
-        "source": "jsearch",
-        "required_skills": [
-          "Tax Regulations"
-        ],
-        "preferred_skills": [
-          "Client Management"
-        ],
-        "experience_required": "8+ years",
-        "matched_criteria": [
-          "role",
-          "location"
-        ],
-        "additional_comments": "Experience requirement is higher than user's 2 years, included for location and role match.",
-        "reason": "Manager role in Mumbai, location matches user preference."
-      },
-      {
-        "title": "Office Manager",
-        "company": "Rangate Glass And Aluminium Llp",
-        "location_area": "Shiroli Dumala, Maharashtra",
-        "salary_min": null,
-        "salary_max": null,
-        "salary_currency": "INR",
-        "job_type": "full_time",
-        "remote_type": "onsite",
-        "job_url": "https://apna.co/job/ichalkaranji/office-manager-625994261?utm_campaign=google_jobs_apply&utm_source=google_jobs_apply&utm_medium=organic",
-        "source": "jsearch",
-        "required_skills": [
-          "English skills",
-          "Communication skills"
-        ],
-        "preferred_skills": null,
-        "experience_required": "10-31 years",
-        "matched_criteria": [
-          "role"
-        ],
-        "additional_comments": "Experience required much higher than user profile; location in Maharashtra but not Mumbai or Bangalore.",
-        "reason": "Manager family title but experience too high and location less preferred."
-      },
-      {
-        "title": "Center Operation Manager",
-        "company": "Frankfinn Aviation Services Pvt. Limited",
-        "location_area": "Jalandhar, Punjab",
-        "salary_min": null,
-        "salary_max": null,
-        "salary_currency": "INR",
-        "job_type": "full_time",
-        "remote_type": "onsite",
-        "job_url": "https://www.shine.com/jobs/center-operation-manager/frankfinn-aviation-services-pvt-limited/18199672?utm_campaign=google_jobs_apply&utm_source=google_jobs_apply&utm_medium=organic",
+        "job_url": "https://www.linkedin.com/jobs/view/branch-sales-manager-at-carrier-enterprise-4342501141?utm_campaign=google_jobs_apply&utm_source=google_jobs_apply&utm_medium=organic",
         "source": "jsearch",
         "required_skills": null,
         "preferred_skills": null,
         "experience_required": null,
         "matched_criteria": [
-          "role"
+          "role",
+          "location"
         ],
-        "additional_comments": "Location not in user preferred list but included for Manager role.",
-        "reason": "Manager related role but location Jalandhar not user preference."
+        "additional_comments": "Exact experience requirement not specified, but suitable for managerial level",
+        "reason": "Title close to Manager, location in US but not preferred area, onsite."
       },
       {
-        "title": "Manager - International Students",
-        "company": "Maharishi Markandeshwar  Official",
-        "location_area": "Ambala, Haryana",
-        "salary_min": null,
-        "salary_max": null,
-        "salary_currency": "INR",
+        "title": "Operations Manager - Tax Division",
+        "company": "Larson Tax Partners LLC",
+        "location_area": "Saint Charles, Charles County",
+        "salary_min": 141084.17,
+        "salary_max": 141084.17,
+        "salary_currency": "USD",
         "job_type": null,
         "remote_type": null,
-        "job_url": "https://www.adzuna.in/land/ad/5530550090?se=8jzne1jS8BGpRoq5pupTig&utm_medium=api&utm_source=a2945f71&v=F1851D5E8EE821689D0EF130A0FB41BACB28F776",
-        "source": "adzuna",
-        "required_skills": null,
-        "preferred_skills": null,
-        "experience_required": "3 to 4 years",
-        "matched_criteria": [
-          "role",
-          "location"
-        ],
-        "additional_comments": null,
-        "reason": "Title manager and near user experience, location India, but not preferred cities."
-      },
-      {
-        "title": "Performance Marketing Manager",
-        "company": "MELIOR Concepts",
-        "location_area": "Ahmedabad, Gujarat",
-        "salary_min": null,
-        "salary_max": null,
-        "salary_currency": "INR",
-        "job_type": "full_time",
-        "remote_type": "onsite",
-        "job_url": "https://www.adzuna.in/land/ad/5530550094?se=8jzne1jS8BGpRoq5pupTig&utm_medium=api&utm_source=a2945f71&v=B6FE51CB3DF375B051FC9E5E0B6E7E680F68EEC8",
+        "job_url": "https://www.adzuna.com/land/ad/5530612146?se=BqwvrGbS8BGpRoq5pupTig&utm_medium=api&utm_source=a2945f71&v=E6B9235D92F6E20815185E449295DB27E576F957",
         "source": "adzuna",
         "required_skills": null,
         "preferred_skills": null,
         "experience_required": null,
         "matched_criteria": [
           "role",
-          "location"
+          "salary"
         ],
         "additional_comments": null,
-        "reason": "Manager title and location India, though location not preferred cities."
+        "reason": "Role matches Manager, salary exceeds target, unknown location and remote."
       },
       {
-        "title": "Graphic Designer & Illustrator",
-        "company": "Lighthouse Learning",
-        "location_area": "Mumbai",
-        "salary_min": 500000.0,
-        "salary_max": 750000.0,
-        "salary_currency": "INR",
-        "job_type": "full_time",
-        "remote_type": "hybrid",
-        "job_url": "https://www.adzuna.in/details/3661618274",
-        "source": "ddg",
-        "required_skills": [
-          "InDesign",
-          "Illustrator",
-          "Dreamweaver",
-          "Photoshop",
-          "Graphic Designing"
-        ],
+        "title": "Director of Investments",
+        "company": "Intrua Financial, LLC",
+        "location_area": "Houston, Houston County",
+        "salary_min": 246832.62,
+        "salary_max": 246832.62,
+        "salary_currency": "USD",
+        "job_type": null,
+        "remote_type": null,
+        "job_url": "https://www.adzuna.com/land/ad/5530612049?se=BqwvrGbS8BGpRoq5pupTig&utm_medium=api&utm_source=a2945f71&v=A9FEABEF4950A67C19163F0AB07A7BDAC184C2A7",
+        "source": "adzuna",
+        "required_skills": null,
         "preferred_skills": null,
-        "experience_required": "5 - 7 years",
+        "experience_required": null,
         "matched_criteria": [
-          "location",
-          "skills"
+          "role",
+          "salary"
         ],
-        "additional_comments": "Role more design focused, not managerial, salary below target 10 LPA.",
-        "reason": "Matches skills Dreamweaver, InDesign and location Mumbai, hybrid preference."
+        "additional_comments": null,
+        "reason": "Role seniority consistent with Manager, salary well above target, location not preferred."
       }
     ],
-    "search_summary": "A total of 9 unique jobs matched the search criteria after deduplication. Four roles closely matched the candidate's preferred role and location, with moderate relevance due to experience gaps or location outside preferred cities. One job strongly matched location and skills but did not match the managerial role or salary expectations. Several others were aspirational due to location or experience requirements."
+    "search_summary": "Five unique jobs found after deduplication from three sources. Three jobs are medium matches with role and location fitting candidate preferences, but outside preferred cities and mostly onsite. Two jobs strongly match role and salary expectations but have no location or remote alignment with candidate's preferences, rated as aspirational."
   }
 }

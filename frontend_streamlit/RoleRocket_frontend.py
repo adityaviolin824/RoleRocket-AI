@@ -5,8 +5,8 @@ import time
 import math
 
 
-API_URL = "http://127.0.0.1:8000" # will change after deployment
-REQUEST_TIMEOUT = 45
+API_URL = "http://127.0.0.1:8000"
+REQUEST_TIMEOUT = 120
 
 
 st.set_page_config(page_title="RoleRocket AI", page_icon="🚀", layout="wide")
@@ -23,9 +23,8 @@ if "selected_jobs" not in st.session_state:
 
 
 def check_status():
-    """Safe status check with timeout and friendly fallback."""
     try:
-        r = requests.get(f"{API_URL}/status", timeout=20)
+        r = requests.get(f"{API_URL}/status", timeout=120)
         r.raise_for_status()
         return r.json()
     except requests.exceptions.ConnectionError:
@@ -37,9 +36,8 @@ def check_status():
 
 
 def reset_pipeline():
-    """Reset the pipeline state and go back to upload view."""
     try:
-        requests.post(f"{API_URL}/reset", timeout=REQUEST_TIMEOUT)
+        requests.post(f"{API_URL}/reset", timeout=120)
     except Exception:
         pass
     st.session_state.view = "upload"
@@ -50,17 +48,15 @@ def reset_pipeline():
 
 
 def _upload_and_queue(uploaded_file, preferences):
-    """Upload resume and preferences to the API. Returns (ok, message)."""
     try:
         files = {"file": (uploaded_file.name, uploaded_file.getvalue(), uploaded_file.type)}
         data = {"preferences": json.dumps(preferences)}
-        r = requests.post(f"{API_URL}/intake", files=files, data=data, timeout=REQUEST_TIMEOUT)
+        r = requests.post(f"{API_URL}/intake", files=files, data=data, timeout=120)
         if r.status_code in (200, 201):
             return True, "Intake queued."
         return False, f"{r.status_code}: {r.text}"
     except Exception as e:
         return False, str(e)
-
 
 
 _SPINNER_HTML = """
@@ -113,13 +109,12 @@ _SPINNER_HTML = """
 
 
 def _render_loading_block(html_placeholder, progress_placeholder, title, subtitle, progress_fraction=None):
-    """Render the spinner + messages into separate placeholders."""
     html = _SPINNER_HTML.format(title=title, subtitle=subtitle)
     html_placeholder.markdown(html, unsafe_allow_html=True)
     
     try:
         if progress_fraction is None:
-            frac = (math.sin(time.time() / 2) + 1) / 2  # pulsing effect
+            frac = (math.sin(time.time() / 2) + 1) / 2
         else:
             frac = float(max(0.0, min(1.0, progress_fraction)))
         progress_placeholder.progress(frac)
@@ -128,13 +123,11 @@ def _render_loading_block(html_placeholder, progress_placeholder, title, subtitl
 
 
 def _poll_until(target_step=None):
-    """Poll the API until a terminal state is reached for the target step."""
     start = time.time()
     html_placeholder = st.empty()
     progress_placeholder = st.empty()
-    POLL_TIMEOUT = 300
+    POLL_TIMEOUT = 600
     POLL_INTERVAL = 2
-
 
     while time.time() - start < POLL_TIMEOUT:
         status = check_status()
@@ -142,10 +135,8 @@ def _poll_until(target_step=None):
         step = status.get("step")
         error = status.get("error")
 
-
         elapsed = time.time() - start
         progress_fraction = min(1.0, elapsed / POLL_TIMEOUT)
-
 
         if state in ("running", "queued"):
             if step == "intake":
@@ -169,7 +160,6 @@ def _poll_until(target_step=None):
                 subtitle = "We are juggling a few things behind the scenes and cooking up stellar matches for you."
                 _render_loading_block(html_placeholder, progress_placeholder, title, subtitle, progress_fraction)
 
-
         elif state == "done":
             if (target_step is None) or (step in (None, target_step)):
                 html_placeholder.empty()
@@ -185,9 +175,7 @@ def _poll_until(target_step=None):
             st.error(f"❌ {error}")
             return status
 
-
         time.sleep(POLL_INTERVAL)
-
 
     html_placeholder.empty()
     progress_placeholder.empty()
@@ -200,17 +188,13 @@ st.markdown("*This rocket is powered by Agentic fuel* 🔥")
 st.markdown("**Launch your next role with AI-powered matching and personalized guidance.** Upload your resume to begin.")
 
 
-
 if st.session_state.view == "upload":
     st.write("Upload your resume and share a few preferences so our system can find good role matches for you.")
 
-
     uploaded_file = st.file_uploader("📄 Upload Resume (PDF or DOCX)", type=["pdf", "doc", "docx"])
-
 
     st.subheader("🎯 Job Preferences")
     col1, col2 = st.columns(2)
-
 
     with col1:
         preferred_role = st.text_input("Preferred Role", "Manager")
@@ -219,15 +203,12 @@ if st.session_state.view == "upload":
         )
         target_salary_lpa = st.number_input("Target Salary (LPA)", min_value=0, max_value=200, value=10)
 
-
     with col2:
         preferred_locations = st.text_input("Preferred Locations (comma separated)", "Mumbai, Bangalore")
         remote_preference = st.selectbox("Remote Preference", options=["hybrid", "remote", "onsite"], index=0)
         willing_to_relocate = st.checkbox("Willing to Relocate", value=False)
 
-
     career_goals = st.text_area("Career Goals", "Build impactful products and achieve financial independence", help="Describe your career aspirations and goals")
-
 
     if st.button("🚀 Launch My Career Search!", type="primary"):
         if uploaded_file is None:
@@ -252,7 +233,6 @@ if st.session_state.view == "upload":
                     st.error(f"❌ Upload failed: {msg}")
 
 
-
 elif st.session_state.view == "intake_processing":
     st.subheader("📥 Processing Your Resume")
     st.write("Our system is extracting key details from your resume to build a profile for job matching.")
@@ -266,12 +246,11 @@ elif st.session_state.view == "intake_processing":
             pass
         final_status = check_status()
 
-
     if final_status.get("state") == "done" and final_status.get("step") in (None, "intake"):
         st.success("✅ Intake complete! Your profile has been processed.")
         if st.button("🔍 Start Job Research", type="primary"):
             try:
-                r = requests.post(f"{API_URL}/start_research", timeout=REQUEST_TIMEOUT)
+                r = requests.post(f"{API_URL}/start_research", timeout=120)
                 if r.status_code in (200, 201):
                     st.session_state.view = "research_processing"
                     st.rerun()
@@ -283,7 +262,6 @@ elif st.session_state.view == "intake_processing":
         st.error(f"❌ Error: {final_status.get('error')}")
         if st.button("🔄 Reset & Try Again"):
             reset_pipeline()
-
 
 
 elif st.session_state.view == "research_processing":
@@ -299,7 +277,6 @@ elif st.session_state.view == "research_processing":
             pass
         final_status = check_status()
 
-
     if final_status.get("state") == "done" and final_status.get("step") in (None, "present"):
         st.success("🎉 All done! Your personalized job matches are ready.")
         st.session_state.view = "results"
@@ -310,7 +287,6 @@ elif st.session_state.view == "research_processing":
             reset_pipeline()
 
 
-
 elif st.session_state.view == "results":
     st.subheader("✅ Your Personalized Job Matches")
     col1, col2 = st.columns([3, 1])
@@ -318,7 +294,7 @@ elif st.session_state.view == "results":
         st.write("**Your job research report is ready!** Download it or preview it below.")
     with col2:
         try:
-            download_response = requests.get(f"{API_URL}/download", timeout=REQUEST_TIMEOUT)
+            download_response = requests.get(f"{API_URL}/download", timeout=120)
             if download_response.status_code == 200:
                 st.download_button(
                     label="📥 Download",
@@ -329,18 +305,16 @@ elif st.session_state.view == "results":
         except Exception as e:
             st.error(f"Error downloading: {e}")
 
-
     st.markdown("---")
     st.markdown("### 📄 Report Preview")
     try:
-        download_response = requests.get(f"{API_URL}/download", timeout=REQUEST_TIMEOUT)
+        download_response = requests.get(f"{API_URL}/download", timeout=120)
         if download_response.status_code == 200:
             st.markdown(download_response.text)
         else:
             st.error("Could not load report preview")
     except Exception as e:
         st.error(f"Error loading preview: {e}")
-
 
     st.markdown("---")
     
@@ -352,7 +326,6 @@ elif st.session_state.view == "results":
         reset_pipeline()
 
 
-
 elif st.session_state.view == "job_selection":
     st.subheader("💡 Select Roles for Profile Improvement Guidance")
     st.write("Choose the roles you're most interested in, and we'll provide tailored guidance on how to strengthen your profile for those positions.")
@@ -360,7 +333,7 @@ elif st.session_state.view == "job_selection":
     if st.session_state.jobs_data is None:
         with st.spinner("Loading job data..."):
             try:
-                response = requests.get(f"{API_URL}/aggregation", timeout=REQUEST_TIMEOUT)
+                response = requests.get(f"{API_URL}/aggregation", timeout=120)
                 if response.status_code == 200:
                     st.session_state.jobs_data = response.json()
                 else:
@@ -424,7 +397,7 @@ elif st.session_state.view == "job_selection":
                     response = requests.post(
                         f"{API_URL}/save_selection",
                         json=selection_output,
-                        timeout=REQUEST_TIMEOUT
+                        timeout=120
                     )
                     
                     if response.status_code == 200:
@@ -434,7 +407,7 @@ elif st.session_state.view == "job_selection":
                         with st.spinner("Launching the advisor... 🚀"):
                             improve_response = requests.post(
                                 f"{API_URL}/start_improvement",
-                                timeout=REQUEST_TIMEOUT
+                                timeout=120
                             )
                             
                             if improve_response.status_code == 200:
@@ -447,7 +420,6 @@ elif st.session_state.view == "job_selection":
                         st.error(f"❌ Failed to save: {response.text}")
                 except Exception as e:
                     st.error(f"❌ Error: {str(e)}")
-
 
 
 elif st.session_state.view == "improvement_processing":
@@ -463,7 +435,6 @@ elif st.session_state.view == "improvement_processing":
             pass
         final_status = check_status()
 
-
     if final_status.get("state") == "done" and final_status.get("step") in (None, "improvement"):
         st.success("🎉 Profile improvement recommendations are ready!")
         st.session_state.view = "improvement_results"
@@ -475,7 +446,6 @@ elif st.session_state.view == "improvement_processing":
             st.rerun()
 
 
-
 elif st.session_state.view == "improvement_results":
     st.subheader("🗺️ Your Career Roadmap")
     col1, col2 = st.columns([3, 1])
@@ -483,7 +453,7 @@ elif st.session_state.view == "improvement_results":
         st.write("**Your personalized profile improvement guide is ready!** Download it or preview it below.")
     with col2:
         try:
-            download_response = requests.get(f"{API_URL}/download_improvement", timeout=REQUEST_TIMEOUT)
+            download_response = requests.get(f"{API_URL}/download_improvement", timeout=120)
             if download_response.status_code == 200:
                 st.download_button(
                     label="📥 Download",
@@ -494,18 +464,16 @@ elif st.session_state.view == "improvement_results":
         except Exception as e:
             st.error(f"Error downloading: {e}")
 
-
     st.markdown("---")
     st.markdown("### 📖 Roadmap Preview")
     try:
-        download_response = requests.get(f"{API_URL}/download_improvement", timeout=REQUEST_TIMEOUT)
+        download_response = requests.get(f"{API_URL}/download_improvement", timeout=120)
         if download_response.status_code == 200:
             st.markdown(download_response.text)
         else:
             st.error("Could not load guide preview")
     except Exception as e:
         st.error(f"Error loading preview: {e}")
-
 
     st.markdown("---")
     

@@ -7,9 +7,11 @@ from pathlib import Path
 from typing import Dict, Any
 from contextlib import asynccontextmanager
 
+
 from fastapi import FastAPI, UploadFile, File, Form, HTTPException, Body
 from fastapi.responses import FileResponse, JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
+
 
 from full_pipeline_files.input_pipeline import run_intake_pipeline
 from full_pipeline_files.research_pipeline import run_research_pipeline
@@ -19,20 +21,17 @@ from profile_improvement_advisor.profile_improvement_pipeline import (
 )
 from utils.read_yaml import read_yaml
 
-# ============================================================================
-# LOGGING CONFIGURATION
-# ============================================================================
+
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
 )
 logger = logging.getLogger(__name__)
 
-# ============================================================================
-# CONFIGURATION AND PATHS
-# ============================================================================
+
 config = read_yaml(Path("config/master_config.yaml"))
 MODEL = config.llm
+
 
 INPUT_DIR = Path("input")
 MEMORY_DIR = Path("memory")
@@ -42,12 +41,9 @@ MEMORY_DIR.mkdir(parents=True, exist_ok=True)
 OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 DB_PATH = MEMORY_DIR / "userprofile.db"
 
-# ============================================================================
-# LIFESPAN EVENTS
-# ============================================================================
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Startup
     logger.info("=" * 80)
     logger.info("🚀 Job Research Pipeline API Starting")
     logger.info("=" * 80)
@@ -63,10 +59,9 @@ async def lifespan(app: FastAPI):
     
     logger.info("🛑 Job Research Pipeline API Shutting Down")
 
-# ============================================================================
-# FASTAPI APP INITIALIZATION
-# ============================================================================
+
 app = FastAPI(title="Job Research Pipeline", lifespan=lifespan)
+
 
 app.add_middleware(
     CORSMiddleware,
@@ -76,9 +71,7 @@ app.add_middleware(
     allow_credentials=True,
 )
 
-# ============================================================================
-# GLOBAL STATE TRACKER
-# ============================================================================
+
 _state: Dict[str, Any] = {
     "state": "idle",
     "step": None,
@@ -91,11 +84,26 @@ _state: Dict[str, Any] = {
     "improvement_result": None,
 }
 
-# ============================================================================
-# BACKGROUND TASK FUNCTIONS
-# ============================================================================
+
+def cleanup_directories():
+    cleaned_files = []
+    try:
+        for item in INPUT_DIR.glob("*"):
+            if item.is_file():
+                item.unlink()
+                cleaned_files.append(f"input/{item.name}")
+        for item in OUTPUT_DIR.glob("*"):
+            if item.is_file():
+                item.unlink()
+                cleaned_files.append(f"outputs/{item.name}")
+        if cleaned_files:
+            logger.info(f"🗑️  Cleaned {len(cleaned_files)} files")
+    except Exception as e:
+        logger.warning(f"⚠️  Cleanup error: {e}")
+    return cleaned_files
+
+
 async def _run_intake_task(file_path: str, preferences: Dict[str, Any]):
-    """Background task: Process resume and extract user profile."""
     logger.info(f"▶️  Starting intake pipeline")
     logger.info(f"   Resume: {Path(file_path).name}")
     logger.info(f"   DB: {DB_PATH}")
@@ -117,8 +125,8 @@ async def _run_intake_task(file_path: str, preferences: Dict[str, Any]):
         logger.exception("Full traceback:")
         _state.update({"state": "error", "error": str(e)})
 
+
 async def _run_research_task() -> bool:
-    """Background task: Search for job opportunities."""
     logger.info(f"▶️  Starting research pipeline")
     
     _state.update({"state": "running", "step": "research", "error": None})
@@ -146,8 +154,8 @@ async def _run_research_task() -> bool:
         _state.update({"state": "error", "error": str(e)})
         return False
 
+
 async def _run_present_task() -> bool:
-    """Background task: Generate final presentation."""
     logger.info(f"▶️  Starting presenter pipeline")
     
     _state.update({"state": "running", "step": "present", "error": None})
@@ -180,8 +188,8 @@ async def _run_present_task() -> bool:
         _state.update({"state": "error", "error": str(e)})
         return False
 
+
 async def _run_full_pipeline():
-    """Orchestrator: Run research and presenter pipelines."""
     logger.info(f"🚀 Starting full pipeline (research -> present)")
     
     if await _run_research_task():
@@ -189,8 +197,8 @@ async def _run_full_pipeline():
         
     logger.info(f"🏁 Full pipeline completed")
 
+
 async def _run_improvement_task():
-    """Background task: Run profile improvement pipeline."""
     logger.info(f"▶️  Starting profile improvement pipeline")
     
     _state.update({"state": "running", "step": "improvement", "error": None})
@@ -262,19 +270,18 @@ async def _run_improvement_task():
         logger.exception("Full traceback:")
         _state.update({"state": "error", "error": str(e)})
 
-# ============================================================================
-# API ENDPOINTS
-# ============================================================================
+
 @app.post("/intake")
 async def intake(
     file: UploadFile = File(...),
     preferences: str = Form(...)
 ):
-    """Upload resume and start intake pipeline."""
     logger.info(f"📨 POST /intake - {file.filename}")
     
     if _state["state"] in ["queued", "running"]:
         raise HTTPException(409, f"Pipeline already in progress: {_state['step']}")
+    
+    cleanup_directories()
     
     dest = INPUT_DIR / file.filename
     with open(dest, "wb") as f:
@@ -304,9 +311,9 @@ async def intake(
     
     return {"status": "queued", "step": "intake"}
 
+
 @app.post("/start_research")
 async def start_research():
-    """Start research and presenter pipelines."""
     logger.info(f"📨 POST /start_research")
     
     if not _state.get("file"):
@@ -328,14 +335,14 @@ async def start_research():
     
     return {"status": "queued", "step": "research"}
 
+
 @app.get("/status")
 async def get_status():
-    """Get current pipeline status."""
     return JSONResponse(content=_state)
+
 
 @app.get("/download")
 async def download_results():
-    """Download the final markdown report."""
     logger.info(f"📨 GET /download")
     
     path = Path(_state.get("presenter_md") or OUTPUT_DIR / "presenter_output.md")
@@ -346,9 +353,9 @@ async def download_results():
     logger.info(f"   Serving: {path.name}")
     return FileResponse(path, media_type="text/markdown", filename="job_matches.md")
 
+
 @app.get("/aggregation")
 async def get_aggregation():
-    """Get job aggregation JSON data."""
     logger.info(f"📨 GET /aggregation")
     
     path = Path(_state.get("aggregation_path") or OUTPUT_DIR / "job_aggregation.json")
@@ -362,9 +369,9 @@ async def get_aggregation():
     logger.info(f"   Serving: {path.name}")
     return JSONResponse(content=data)
 
+
 @app.post("/save_selection")
 async def save_selection(selection_data: Dict[str, Any] = Body(...)):
-    """Save user's job selection to input/user_selected_jobs.json."""
     logger.info(f"📨 POST /save_selection")
     
     try:
@@ -388,9 +395,9 @@ async def save_selection(selection_data: Dict[str, Any] = Body(...)):
         logger.error(f"❌ Failed to save selection: {str(e)}")
         raise HTTPException(500, f"Failed to save selection: {str(e)}")
 
+
 @app.post("/start_improvement")
 async def start_improvement():
-    """Run profile improvement pipeline for selected jobs."""
     logger.info(f"📨 POST /start_improvement")
     
     selection_path = INPUT_DIR / "user_selected_jobs.json"
@@ -403,9 +410,9 @@ async def start_improvement():
     
     return {"status": "queued", "message": "Profile improvement analysis started"}
 
+
 @app.get("/download_improvement")
 async def download_improvement():
-    """Download profile improvement report."""
     logger.info(f"📨 GET /download_improvement")
     
     path = Path(_state.get("improvement_output") or OUTPUT_DIR / "profile_improvement_output.md")
@@ -416,13 +423,15 @@ async def download_improvement():
     logger.info(f"   Serving: {path.name}")
     return FileResponse(path, media_type="text/markdown", filename="profile_improvement.md")
 
+
 @app.post("/reset")
 async def reset_state():
-    """Reset pipeline state."""
     logger.info(f"📨 POST /reset")
     
     if _state["state"] == "running":
         raise HTTPException(409, "Cannot reset while pipeline is running")
+    
+    cleanup_directories()
     
     _state.update({
         "state": "idle",
@@ -439,9 +448,9 @@ async def reset_state():
     logger.info(f"   ✅ State reset")
     return {"status": "reset", "message": "Pipeline state cleared"}
 
+
 @app.get("/health")
 async def health():
-    """Health check endpoint."""
     return {
         "status": "ok",
         "model": MODEL,
