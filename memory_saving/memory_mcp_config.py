@@ -4,7 +4,7 @@ from pathlib import Path
 from typing import Dict, Any
 
 MCP_PARAMS = {
-    "command": "mcp-memory-libsql",  # Direct binary (npm install -g)
+    "command": "mcp-memory-libsql",
     "args": [],
     "env": {"LIBSQL_URL": "file:./memory/userprofile.db"}
 }

@@ -1,12 +1,12 @@
 FROM python:3.13-slim
 
-# Install Node.js + npm (multi-stage for smaller size)
-RUN apt-get update && apt-get install -y \
-    curl gnupg ca-certificates && \
+# Install Node.js (optimized - remove unnecessary packages after)
+RUN apt-get update -qq && \
+    apt-get install -y curl -qq && \
     curl -fsSL https://deb.nodesource.com/setup_20.x | bash - && \
-    apt-get install -y nodejs && \
-    npm install -g npx && \
-    apt-get clean && rm -rf /var/lib/apt/lists/*
+    apt-get install -y nodejs -qq && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
 WORKDIR /app
 
@@ -30,9 +30,9 @@ ENV PORT=10000
 # Render expects $PORT
 EXPOSE $PORT
 
-# Healthcheck (use /status if available, fallback /docs)
+# Healthcheck - simpler without curl dependency at runtime
 HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
-    CMD curl -f http://localhost:${PORT}/status || curl -f http://localhost:${PORT}/docs || exit 1
+    CMD python -c "import urllib.request; urllib.request.urlopen('http://localhost:${PORT}/status')" || exit 1
 
 # Correct CMD for Render ($PORT)
-CMD ["sh", "-c", "uvicorn main:app --host 0.0.0.0 --port $PORT"]
+CMD ["sh", "-c", "uvicorn main:app --host 0.0.0.0 --port ${PORT}"]

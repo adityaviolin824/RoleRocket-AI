@@ -5,7 +5,7 @@ from pathlib import Path
 import numpy as np
 import pdfplumber
 import docx
-import easyocr
+# import easyocr
 from PIL import Image
 from pydantic import BaseModel
 from agents import Agent, Runner, trace
@@ -20,29 +20,28 @@ load_dotenv(override=True)
 
 _ocr_reader = None
 
-
-def get_ocr_reader() -> easyocr.Reader:
-    """Lazy initialize EasyOCR reader."""
-    global _ocr_reader
-    if _ocr_reader is None:
-        print("[OCR] Initializing EasyOCR...")
-        _ocr_reader = easyocr.Reader(["en"], gpu=False)
-        print("[OCR] EasyOCR ready!")
-    return _ocr_reader
-
-
-def ocr_image_file(path: Path) -> str:
-    reader = get_ocr_reader()
-    arr = reader.readtext(str(path), detail=0, paragraph=True)
-    return "\n".join(arr)
-
-
-def ocr_image_pil(img: Image.Image) -> str:
-    reader = get_ocr_reader()
-    img_array = np.array(img)
-    arr = reader.readtext(img_array, detail=0, paragraph=True)
-    return "\n".join(arr)
-
+##### UNCOMMENT IF YOU WANT TO USE IMAGE RESUMES, COMMENTED DUE TO RENDER FREE TIER CPU LIMITATIONS
+# def get_ocr_reader() -> easyocr.Reader:
+#     """Lazy initialize EasyOCR reader."""
+#     global _ocr_reader
+#     if _ocr_reader is None:
+#         print("[OCR] Initializing EasyOCR...")
+#         _ocr_reader = easyocr.Reader(["en"], gpu=False)
+#         print("[OCR] EasyOCR ready!")
+#     return _ocr_reader
+#
+#
+# def ocr_image_file(path: Path) -> str:
+#     reader = get_ocr_reader()
+#     arr = reader.readtext(str(path), detail=0, paragraph=True)
+#     return "\n".join(arr)
+#
+#
+# def ocr_image_pil(img: Image.Image) -> str:
+#     reader = get_ocr_reader()
+#     img_array = np.array(img)
+#     arr = reader.readtext(img_array, detail=0, paragraph=True)
+#     return "\n".join(arr)
 
 # =========================
 # Experience summary (companies + roles only)
@@ -99,8 +98,8 @@ def compute_experience_summary(parsed_resume: dict) -> dict:
             {
                 "title": title,
                 "company": company,
-                "start_date": start_raw,   
-                "end_date": end_raw,       
+                "start_date": start_raw,
+                "end_date": end_raw,
                 "current": current_flag,
                 "type": rtype,
             }
@@ -224,7 +223,8 @@ def compute_contributions(parsed_resume: dict) -> List[str]:
 # =========================
 def extract_text_from_pdf(path: Path) -> str:
     """
-    BULLETPROOF PDF extraction - 4 fallback methods.
+    BULLETPROOF PDF extraction with multiple fallbacks.
+    OCR based fallbacks are disabled in this deployment.
     """
     try:
         print(f"[PDF] Processing {path.name}")
@@ -236,6 +236,7 @@ def extract_text_from_pdf(path: Path) -> str:
                 page_stats["total_pages"] += 1
                 print(f"[PDF] Page {page_num}/{len(pdf.pages)}")
 
+                # 1) Native text
                 native_text = page.extract_text() or ""
                 if native_text.strip():
                     text_chunks.append(native_text.strip())
@@ -243,17 +244,7 @@ def extract_text_from_pdf(path: Path) -> str:
                     print(f"[PDF] Page {page_num}: Native ({len(native_text)} chars)")
                     continue
 
-                try:
-                    page_img = page.to_image(resolution=300)
-                    ocr_text = ocr_image_pil(page_img.original)
-                    if ocr_text.strip():
-                        text_chunks.append(f"[PAGE {page_num} OCR]\n{ocr_text.strip()}")
-                        page_stats["ocr_pages"] += 1
-                        print(f"[PDF] Page {page_num}: OCR ({len(ocr_text)} chars)")
-                        continue
-                except Exception as e:
-                    print(f"[PDF] Page {page_num} OCR failed: {e}")
-
+                # 2) Tables fallback (no OCR)
                 tables = page.extract_tables()
                 table_text = []
                 for table_num, table in enumerate(tables or []):
@@ -264,18 +255,30 @@ def extract_text_from_pdf(path: Path) -> str:
                                 table_text.append(" | ".join(row_text))
                 if table_text:
                     text_chunks.append(f"[PAGE {page_num} TABLES]\n" + "\n".join(table_text))
-                    page_stats["ocr_pages"] += 1
+                    # page_stats["ocr_pages"] += 1  # would have been OCR tables, but OCR is disabled
                     continue
 
-                try:
-                    full_img = page.to_image(resolution=400)
-                    full_ocr = ocr_image_pil(full_img.original)
-                    if full_ocr.strip():
-                        text_chunks.append(f"[PAGE {page_num} FULL OCR]\n{full_ocr}")
-                        page_stats["ocr_pages"] += 1
-                        print(f"[PDF] Page {page_num}: Full OCR ({len(full_ocr)} chars)")
-                except Exception as e:
-                    print(f"[PDF] Page {page_num} Full OCR failed: {e}")
+                # 3) OCR based fallbacks are disabled
+                # try:
+                #     page_img = page.to_image(resolution=300)
+                #     ocr_text = ocr_image_pil(page_img.original)
+                #     if ocr_text.strip():
+                #         text_chunks.append(f"[PAGE {page_num} OCR]\n{ocr_text.strip()}")
+                #         page_stats["ocr_pages"] += 1
+                #         print(f"[PDF] Page {page_num}: OCR ({len(ocr_text)} chars)")
+                #         continue
+                # except Exception as e:
+                #     print(f"[PDF] Page {page_num} OCR failed: {e}")
+                #
+                # try:
+                #     full_img = page.to_image(resolution=400)
+                #     full_ocr = ocr_image_pil(full_img.original)
+                #     if full_ocr.strip():
+                #         text_chunks.append(f"[PAGE {page_num} FULL OCR]\n{full_ocr}")
+                #         page_stats["ocr_pages"] += 1
+                #         print(f"[PDF] Page {page_num}: Full OCR ({len(full_ocr)} chars)")
+                # except Exception as e:
+                #     print(f"[PDF] Page {page_num} Full OCR failed: {e}")
 
         print(
             f"[PDF] SUMMARY: {page_stats['text_pages']} text + "
@@ -373,7 +376,11 @@ def extract_resume_text(path: Path) -> str:
     elif ext == ".docx":
         return extract_text_from_docx(path)
     elif ext in [".png", ".jpg", ".jpeg", ".tif", ".tiff", ".bmp"]:
-        return ocr_image_file(path)
+        # OCR is disabled - image resumes are not supported in this deployment
+        raise ValueError(
+            f"Image resume formats like {ext} are not supported in this environment. "
+            f"Please upload a PDF or DOCX file instead."
+        )
     else:
         raise ValueError(f"Unsupported: {ext}. Use PDF, DOCX, PNG, or JPG")
 

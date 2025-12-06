@@ -1,0 +1,11 @@
+.env
+__pycache__/
+.gradio/
+cv-model/
+00-debugging/
+logs/running_log.log
+input/
+.venv/
+.streamlit/
+pyproject.toml
+uv.lock

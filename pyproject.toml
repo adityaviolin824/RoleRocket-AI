@@ -17,7 +17,6 @@ dependencies = [
     "streamlit>=1.40.0",
 
     # Agentic / LLM frameworks
-    "semantic-kernel>=1.25.0",
     "openai-agents>=0.0.15",
     "openai>=1.68.2",
 
