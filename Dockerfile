@@ -1,6 +1,6 @@
 FROM python:3.13-slim
 
-# SINGLE RUN: Node.js + MCP deps (critical)
+# Install system deps + Node.js
 RUN apt-get update -qq && \
     apt-get install -y \
         curl \
@@ -14,6 +14,8 @@ RUN apt-get update -qq && \
         libffi-dev && \
     curl -fsSL https://deb.nodesource.com/setup_20.x | bash - && \
     apt-get install -y nodejs && \
+    # INSTALL MCP SERVER BINARIES HERE
+    npm install -g @oevortex/ddg_search mcp-memory-libsql && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
