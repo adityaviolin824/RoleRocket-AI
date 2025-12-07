@@ -301,9 +301,19 @@ async def intake(
     preferences: str = Form(...)
 ):
     logger.info(f"📨 POST /intake - {file.filename}")
-    
+
     if _state["state"] in ["queued", "running"]:
-        raise HTTPException(409, f"Pipeline already in progress: {_state['step']}")
+        logger.warning("❌ Intake rejected: pipeline already running")
+
+        raise HTTPException(
+            status_code=409,
+            detail=(
+                "Another session is already running. "
+                "Multiple simultaneous runs are not supported due to free-tier "
+                "deployment limitations. Please wait for the current job to finish "
+                "and try again."
+            )
+        )
     
     cleanup_directories()
     
