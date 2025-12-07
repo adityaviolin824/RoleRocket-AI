@@ -420,13 +420,11 @@ elif st.session_state.view == "job_selection":
 
         col1, col2 = st.columns(2)
 
-        with col1:
-            if st.button("← Back to results"):
-                st.session_state.view = "results"
-                st.rerun()
+        if st.button("← Back to results", type="primary", use_container_width=True):
+            st.session_state.view = "results"
+            st.rerun()
 
-        with col2:
-            if st.button("🚀 Get my roadmap", type="primary", disabled=len(selected_indices) == 0):
+        if st.button("🚀 Get my roadmap", type="primary", use_container_width=True):
                 selected_jobs_list = [job_list[i] for i in selected_indices]
 
                 selection_output = {
@@ -531,12 +529,9 @@ elif st.session_state.view == "improvement_results":
 
     st.markdown("---")
 
-    col1, col2 = st.columns(2)
-    with col1:
-        if st.button("← Back to job matches"):
+    if st.button("← Back to job matches", type="primary", use_container_width=True):
             st.session_state.view = "results"
             st.rerun()
 
-    with col2:
-        if st.button("🔄 Process another resume"):
+    if st.button("🔄 Process another resume", type="primary", use_container_width=True):
             reset_pipeline()
