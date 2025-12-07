@@ -20,6 +20,43 @@ load_dotenv(override=True)
 
 _ocr_reader = None
 
+FRIENDLY_OCR_DISABLED_MSG = (
+    "Due to Free-tier deployment limitations, OCR has been disabled in the live demo. "
+    "However you can use it by running locally on your computer."
+)
+
+
+class OCRDisabledError(ValueError):
+    """
+    Raised when the resume appears to be image only, but OCR is disabled
+    in the live demo environment.
+    """
+    error_code = "ocr_disabled"
+
+
+def format_image_extraction_error(e: Exception) -> Exception:
+    """
+    Wrap errors that are likely caused by image only resumes or OCR limitations
+    into a user friendly message about the live demo constraints.
+    Image related errors become OCRDisabledError so the API layer can handle them cleanly.
+    Other errors are passed through unchanged.
+    """
+    msg = str(e)
+
+    is_image_related = (
+        "Image resume formats like" in msg
+        or "No text from" in msg
+        or "Image-only/corrupted?" in msg
+    )
+
+    if is_image_related:
+        print(f"[OCR-LIMITATION] Underlying error: {msg}")
+        return OCRDisabledError(FRIENDLY_OCR_DISABLED_MSG)
+
+    # For non image related errors, just propagate the original exception
+    return e
+
+
 ##### UNCOMMENT IF YOU WANT TO USE IMAGE RESUMES, COMMENTED DUE TO RENDER FREE TIER CPU LIMITATIONS
 # def get_ocr_reader() -> easyocr.Reader:
 #     """Lazy initialize EasyOCR reader."""
@@ -534,7 +571,19 @@ async def pipeline_process_resume_file(
     model: str = "gpt-4o-mini",
 ) -> None:
     resume_agent = build_resume_parser_agent(model=model)
-    raw_text = extract_resume_text(path)
+
+    try:
+        raw_text = extract_resume_text(path)
+    except ValueError as e:
+        # Convert image related extraction errors into OCRDisabledError when relevant
+        raise format_image_extraction_error(e)
+    except FileNotFoundError:
+        # Let missing files be explicit
+        raise
+    except Exception as e:
+        # For unexpected extractor errors, keep the original message
+        raise e
+
     parsed_resume = await parse_resume_with_llm(raw_text, resume_agent)
 
     # Compute experience summary from parsed roles (companies + roles only)

@@ -21,6 +21,11 @@ from profile_improvement_advisor.profile_improvement_pipeline import (
 )
 from utils.read_yaml import read_yaml
 
+from memory_saving.save_user_resume_to_memory import (
+    FRIENDLY_OCR_DISABLED_MSG,
+    OCRDisabledError,
+) # for production deployment on Render
+
 
 logging.basicConfig(
     level=logging.INFO,
@@ -121,9 +126,28 @@ async def _run_intake_task(file_path: str, preferences: Dict[str, Any]):
         _state["state"] = "done"
         
     except Exception as e:
-        logger.error(f"❌ Intake pipeline failed: {str(e)}")
-        logger.exception("Full traceback:")
-        _state.update({"state": "error", "error": str(e)})
+        raw_msg = str(e)
+
+        # Normalize OCR-disabled case into a single friendly message
+        if isinstance(e, OCRDisabledError) or "Due to Free-tier deployment limitations" in raw_msg:
+            user_msg = FRIENDLY_OCR_DISABLED_MSG
+
+            logger.info(
+                "⚠️ Intake pipeline stopped: OCR is disabled in the live demo (image-only resume)."
+            )
+
+        else:
+            user_msg = raw_msg
+
+            logger.error(f"❌ Intake pipeline failed: {raw_msg}")
+            logger.exception("Full traceback:")
+
+        # Store the error silently for frontend consumption
+        _state.update({"state": "error", "error": user_msg})
+
+
+
+
 
 
 async def _run_research_task() -> bool:

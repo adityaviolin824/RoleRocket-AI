@@ -4,14 +4,18 @@ import json
 import time
 import math
 
+# Import from helpers package
+from helpers import base_style, spinner, markdown_to_pdf
 
-API_URL = "https://rolerocket-ai-v2.onrender.com"
+API_URL = "http://127.0.0.1:8001/" ###########
 REQUEST_TIMEOUT = 240
-
 
 st.set_page_config(page_title="RoleRocket AI", page_icon="🚀", layout="wide")
 
+# Apply base styles from helpers
+base_style.apply_base_styles()
 
+# === GLOBAL STATE ===
 if "view" not in st.session_state:
     st.session_state.view = "upload"
 if "last_status" not in st.session_state:
@@ -20,6 +24,61 @@ if "jobs_data" not in st.session_state:
     st.session_state.jobs_data = None
 if "selected_jobs" not in st.session_state:
     st.session_state.selected_jobs = []
+
+# === HELPERS ===
+def current_step_index(view: str) -> int:
+    mapping = {
+        "upload": 0,
+        "intake_processing": 1,
+        "research_processing": 2,
+        "results": 2,
+        "job_selection": 2,
+        "improvement_processing": 3,
+        "improvement_results": 3,
+    }
+    return mapping.get(view, 0)
+
+def render_sidebar():
+    with st.sidebar:
+        st.markdown("### 🚀 RoleRocket AI")
+        st.caption("Agentic career copilot")
+        st.markdown("---")
+        st.markdown("##### Pipeline")
+        
+        steps = [
+            "Profiling and intake",
+            "Job research and scoring",
+            "Report presentation",
+            "Roadmap and upskilling",
+        ]
+        
+        idx = current_step_index(st.session_state.view)
+        
+        for i, label in enumerate(steps):
+            if i < idx:
+                css_class = "rr-step-chip rr-step-done"
+                icon = "✅"
+            elif i == idx:
+                css_class = "rr-step-chip rr-step-active"
+                icon = "🟢"
+            else:
+                css_class = "rr-step-chip rr-step-upcoming"
+                icon = "⚪"
+            
+            st.markdown(
+                f'<div class="{css_class}">{icon}<span>{label}</span></div>',
+                unsafe_allow_html=True,
+            )
+        
+        st.markdown("---")
+        st.markdown(
+            "**Pro tips**\n\n"
+            "- Upload a focused resume\n"
+            "- Set a realistic salary target\n"
+            "- Narrow down preferred locations\n"
+            "- Be specific in your career goals"
+        )
+
 
 
 def check_status():
@@ -34,7 +93,6 @@ def check_status():
     except Exception as e:
         return {"state": "error", "error": f"API error: {str(e)}"}
 
-
 def reset_pipeline():
     try:
         requests.post(f"{API_URL}/reset", timeout=120)
@@ -45,7 +103,6 @@ def reset_pipeline():
     st.session_state.jobs_data = None
     st.session_state.selected_jobs = []
     st.rerun()
-
 
 def _upload_and_queue(uploaded_file, preferences):
     try:
@@ -58,108 +115,35 @@ def _upload_and_queue(uploaded_file, preferences):
     except Exception as e:
         return False, str(e)
 
-
-_SPINNER_HTML = """
-<style>
-    .spinner-container {{
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        padding: 2rem;
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        border-radius: 12px;
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        margin: 1rem 0;
-    }}
-    .spinner {{
-        border: 4px solid #f3f3f3;
-        border-top: 4px solid #667eea;
-        border-radius: 50%;
-        width: 50px;
-        height: 50px;
-        animation: spin 1s linear infinite;
-        margin-bottom: 1rem;
-    }}
-    @keyframes spin {{
-        0% {{ transform: rotate(0deg); }}
-        100% {{ transform: rotate(360deg); }}
-    }}
-    .spinner-title {{
-        font-size: 1.5rem;
-        font-weight: bold;
-        color: white;
-        margin-bottom: 0.5rem;
-        text-align: center;
-    }}
-    .spinner-subtitle {{
-        font-size: 1rem;
-        color: rgba(255, 255, 255, 0.9);
-        text-align: center;
-        line-height: 1.5;
-        max-width: 500px;
-    }}
-</style>
-<div class="spinner-container">
-    <div class="spinner"></div>
-    <div class="spinner-title">{title}</div>
-    <div class="spinner-subtitle">{subtitle}</div>
-</div>
-"""
-
-
-def _render_loading_block(html_placeholder, progress_placeholder, title, subtitle, progress_fraction=None):
-    html = _SPINNER_HTML.format(title=title, subtitle=subtitle)
-    html_placeholder.markdown(html, unsafe_allow_html=True)
-    
-    try:
-        if progress_fraction is None:
-            frac = (math.sin(time.time() / 2) + 1) / 2
-        else:
-            frac = float(max(0.0, min(1.0, progress_fraction)))
-        progress_placeholder.progress(frac)
-    except Exception:
-        pass
-
+def get_pdf_download(md_content: str, filename: str, title: str):
+    """Convert markdown to PDF bytes using helpers.markdown_to_pdf"""
+    pdf_bytes = markdown_to_pdf.markdown_to_pdf_bytes(md_content, title=title)
+    return st.download_button(
+        label=f"📥 Download {filename}",
+        data=pdf_bytes,
+        file_name=filename,
+        mime="application/pdf",
+    )
 
 def _poll_until(target_step=None):
     start = time.time()
     html_placeholder = st.empty()
     progress_placeholder = st.empty()
-    POLL_TIMEOUT = 600
+    POLL_TIMEOUT = 300
     POLL_INTERVAL = 2
-
+    
     while time.time() - start < POLL_TIMEOUT:
         status = check_status()
         state = status.get("state")
         step = status.get("step")
         error = status.get("error")
-
+        
         elapsed = time.time() - start
         progress_fraction = min(1.0, elapsed / POLL_TIMEOUT)
-
+        
         if state in ("running", "queued"):
-            if step == "intake":
-                title = "⏳ Profiling in progress"
-                subtitle = "Our resume spelunkers are diving deep, extracting your superpowers and battle scars."
-                _render_loading_block(html_placeholder, progress_placeholder, title, subtitle, progress_fraction)
-            elif step == "research":
-                title = "🔍 The Research Hive is buzzing"
-                subtitle = "Our researchers are frantically hunting top roles for you, armed with coffee and determination."
-                _render_loading_block(html_placeholder, progress_placeholder, title, subtitle, progress_fraction)
-            elif step == "present":
-                title = "📊 Final polish in progress"
-                subtitle = "The presenter agent is giving the report a tuxedo and a bow tie while adding finishing touches."
-                _render_loading_block(html_placeholder, progress_placeholder, title, subtitle, progress_fraction)
-            elif step == "improvement":
-                title = "💡 Personal roadmap assembly"
-                subtitle = "Our trillion-parameter advisor is carefully sketching your fast-track roadmap, with dramatic flair."
-                _render_loading_block(html_placeholder, progress_placeholder, title, subtitle, progress_fraction)
-            else:
-                title = "⏳ Working on your request"
-                subtitle = "We are juggling a few things behind the scenes and cooking up stellar matches for you."
-                _render_loading_block(html_placeholder, progress_placeholder, title, subtitle, progress_fraction)
-
+            # Use spinner from helpers
+            spinner.render_spinning_status(html_placeholder, progress_placeholder, step, progress_fraction)
         elif state == "done":
             if (target_step is None) or (step in (None, target_step)):
                 html_placeholder.empty()
@@ -174,71 +158,114 @@ def _poll_until(target_step=None):
             progress_placeholder.empty()
             st.error(f"❌ {error}")
             return status
-
+        
         time.sleep(POLL_INTERVAL)
-
+    
     html_placeholder.empty()
     progress_placeholder.empty()
     st.warning("⚠️ This is taking longer than expected. The rocket may have hit some turbulence. Please refresh!")
     return check_status()
 
 
-st.title("🚀 RoleRocket AI")
-st.markdown("*This rocket is powered by Agentic fuel* 🔥")
-st.markdown("**Launch your next role with AI-powered matching and personalized guidance.** Upload your resume to begin.")
+
+# === RENDER SIDEBAR AND HERO ===
+render_sidebar()
+
+col_hero_left, col_hero_right = st.columns([3, 2])
+with col_hero_left:
+    st.markdown('<div class="rr-hero-title">🚀 RoleRocket AI</div>', unsafe_allow_html=True)
+    st.markdown(
+        '<div class="rr-hero-tagline">'
+        'Launch your next role with agent teams that read your resume, hunt roles, '
+        'and build a roadmap.'
+        "</div>",
+        unsafe_allow_html=True,
+    )
+    st.markdown(
+        '<div class="rr-subtle">This rocket runs on agentic fuel.</div>',
+        unsafe_allow_html=True,
+    )
 
 
+    
+
+# === MAIN VIEW ROUTER ===
 if st.session_state.view == "upload":
-    st.write("Upload your resume and share a few preferences so our system can find good role matches for you.")
+    st.markdown("<div style='margin-top: 0.75rem;'></div>", unsafe_allow_html=True)
+    st.markdown('<div class="rr-section-title">📥 Upload your resume and preferences</div>', unsafe_allow_html=True)
 
-    uploaded_file = st.file_uploader("📄 Upload Resume (PDF or DOCX)", type=["pdf", "doc", "docx"])
+    col_form, col_help = st.columns([3, 2])
 
-    st.subheader("🎯 Job Preferences")
-    col1, col2 = st.columns(2)
+    with col_form:
+        uploaded_file = st.file_uploader("📄 Upload Resume (PDF or DOCX)", type=["pdf", "doc", "docx"])
+        st.markdown("<div style='margin-top: 0.75rem;'></div>", unsafe_allow_html=True)
+        st.subheader("🎯 Job Preferences")
+        col1, col2 = st.columns(2)
 
-    with col1:
-        preferred_role = st.text_input("Preferred Role", "Manager")
-        user_reported_years_experience = st.number_input(
-            "Years of Experience", min_value=0.0, max_value=50.0, value=2.0, step=0.5
+        with col1:
+            preferred_role = st.text_input("Preferred Role", "Manager")
+            user_reported_years_experience = st.number_input(
+                "Years of Experience", min_value=0.0, max_value=50.0, value=2.0, step=0.5
+            )
+            target_salary_lpa = st.number_input(
+                "Target Salary (LPA)", min_value=0, max_value=200, value=10
+            )
+
+        with col2:
+            preferred_locations = st.text_input(
+                "Preferred Locations (comma separated)", "Mumbai, Bangalore"
+            )
+            remote_preference = st.selectbox(
+                "Remote Preference", options=["hybrid", "remote", "onsite"], index=0
+            )
+            willing_to_relocate = st.checkbox("Willing to Relocate", value=False)
+
+        career_goals = st.text_area(
+            "Career Goals",
+            "Build impactful products and achieve financial independence",
+            help="Describe your career aspirations and what you want from your next role.",
         )
-        target_salary_lpa = st.number_input("Target Salary (LPA)", min_value=0, max_value=200, value=10)
 
-    with col2:
-        preferred_locations = st.text_input("Preferred Locations (comma separated)", "Mumbai, Bangalore")
-        remote_preference = st.selectbox("Remote Preference", options=["hybrid", "remote", "onsite"], index=0)
-        willing_to_relocate = st.checkbox("Willing to Relocate", value=False)
-
-    career_goals = st.text_area("Career Goals", "Build impactful products and achieve financial independence", help="Describe your career aspirations and goals")
-
-    if st.button("🚀 Launch My Career Search!", type="primary"):
-        if uploaded_file is None:
-            st.error("⚠️ Please upload a resume file before launching.")
-        else:
-            preferences = {
-                "preferred_role": preferred_role,
-                "user_reported_years_experience": user_reported_years_experience,
-                "preferred_locations": [loc.strip() for loc in preferred_locations.split(",") if loc.strip()],
-                "remote_preference": remote_preference,
-                "target_salary_lpa": target_salary_lpa,
-                "willing_to_relocate": willing_to_relocate,
-                "career_goals": career_goals,
-            }
-            with st.spinner("Fueling the RoleRocket with your profile... 🚀"):
-                ok, msg = _upload_and_queue(uploaded_file, preferences)
-                if ok:
-                    st.success("✅ Upload successful! Your profile is queued for processing.")
-                    st.session_state.view = "intake_processing"
-                    st.rerun()
+        launch_col1, launch_col2 = st.columns([2, 3])
+        with launch_col1:
+            if st.button("🚀 Launch My Career Search!", type="primary"):
+                if uploaded_file is None:
+                    st.error("⚠️ Please upload a resume file before launching.")
                 else:
-                    st.error(f"❌ Upload failed: {msg}")
+                    preferences = {
+                        "preferred_role": preferred_role,
+                        "user_reported_years_experience": user_reported_years_experience,
+                        "preferred_locations": [
+                            loc.strip()
+                            for loc in preferred_locations.split(",")
+                            if loc.strip()
+                        ],
+                        "remote_preference": remote_preference,
+                        "target_salary_lpa": target_salary_lpa,
+                        "willing_to_relocate": willing_to_relocate,
+                        "career_goals": career_goals,
+                    }
+                    with st.spinner("Fueling the RoleRocket with your profile... 🚀"):
+                        ok, msg = _upload_and_queue(uploaded_file, preferences)
+                        if ok:
+                            st.success("✅ Upload successful. Your profile is queued for processing.")
+                            st.session_state.view = "intake_processing"
+                            st.rerun()
+                        else:
+                            st.error(f"❌ Upload failed: {msg}")
+
 
 
 elif st.session_state.view == "intake_processing":
-    st.subheader("📥 Processing Your Resume")
-    st.write("Our system is extracting key details from your resume to build a profile for job matching.")
-    
+    st.markdown("<div style='margin-top: 0.75rem;'></div>", unsafe_allow_html=True)
+    st.markdown(
+        '<div class="rr-section-title">📥 Processing your resume</div>',
+        unsafe_allow_html=True,
+    )
+    st.write("The intake agent is extracting skills, experience, and constraints from your resume.")
+
     auto = st.checkbox("Auto refresh status", value=True, key="auto_intake")
-    
+
     if auto:
         final_status = _poll_until(target_step="intake")
     else:
@@ -247,7 +274,7 @@ elif st.session_state.view == "intake_processing":
         final_status = check_status()
 
     if final_status.get("state") == "done" and final_status.get("step") in (None, "intake"):
-        st.success("✅ Intake complete! Your profile has been processed.")
+        st.success("✅ Intake complete. Your profile has been processed.")
         if st.button("🔍 Start Job Research", type="primary"):
             try:
                 r = requests.post(f"{API_URL}/start_research", timeout=120)
@@ -260,16 +287,21 @@ elif st.session_state.view == "intake_processing":
                 st.error(f"Error starting research: {e}")
     elif final_status.get("state") == "error":
         st.error(f"❌ Error: {final_status.get('error')}")
-        if st.button("🔄 Reset & Try Again"):
+        if st.button("🔄 Reset and try again"):
             reset_pipeline()
 
+    
 
 elif st.session_state.view == "research_processing":
-    st.subheader("🔍 Finding the best roles for you")
-    st.write("We are searching opportunities and preparing a concise report of role matches tailored to your profile.")
     
+    st.markdown(
+        '<div class="rr-section-title">🔍 Finding the best roles for you</div>',
+        unsafe_allow_html=True,
+    )
+    st.write("Research team is searching for roles, scoring them, and preparing a concise report.")
+
     auto = st.checkbox("Auto refresh status", value=True, key="auto_research")
-    
+
     if auto:
         final_status = _poll_until(target_step="present")
     else:
@@ -278,35 +310,37 @@ elif st.session_state.view == "research_processing":
         final_status = check_status()
 
     if final_status.get("state") == "done" and final_status.get("step") in (None, "present"):
-        st.success("🎉 All done! Your personalized job matches are ready.")
+        st.success("🎉 All done. Your personalized job matches are ready.")
         st.session_state.view = "results"
         st.rerun()
     elif final_status.get("state") == "error":
         st.error(f"❌ Error: {final_status.get('error')}")
-        if st.button("🔄 Reset & Try Again"):
+        if st.button("🔄 Reset and try again"):
             reset_pipeline()
 
+    
 
 elif st.session_state.view == "results":
-    st.subheader("✅ Your Personalized Job Matches")
+    st.markdown("<div style='margin-top: 0.75rem;'></div>", unsafe_allow_html=True)
+    st.markdown(
+        '<div class="rr-section-title">✅ Your personalized job matches</div>',
+        unsafe_allow_html=True,
+    )
+
     col1, col2 = st.columns([3, 1])
     with col1:
-        st.write("**Your job research report is ready!** Download it or preview it below.")
+        st.write("Your job research report is ready. Download it or preview it below.")
     with col2:
         try:
             download_response = requests.get(f"{API_URL}/download", timeout=120)
             if download_response.status_code == 200:
-                st.download_button(
-                    label="📥 Download",
-                    data=download_response.content,
-                    file_name="rolerocket_job_matches.md",
-                    mime="text/markdown",
-                )
+                get_pdf_download(download_response.text, "rolerocket_job_matches.pdf", "RoleRocket Job Matches")
         except Exception as e:
             st.error(f"Error downloading: {e}")
 
     st.markdown("---")
-    st.markdown("### 📄 Report Preview")
+    st.markdown("### 📄 Report preview")
+
     try:
         download_response = requests.get(f"{API_URL}/download", timeout=120)
         if download_response.status_code == 200:
@@ -317,19 +351,28 @@ elif st.session_state.view == "results":
         st.error(f"Error loading preview: {e}")
 
     st.markdown("---")
-    
-    if st.button("💡 Get Guidance to Improve My Profile", type="primary"):
+
+    # Large centered primary button
+    if st.button("💡 Get guidance to improve my profile", type="primary", use_container_width=True):
         st.session_state.view = "job_selection"
         st.rerun()
-    
-    if st.button("🔄 Process Another Resume"):
+
+    if st.button("🔄 Process another resume", type="primary", use_container_width=True):
         reset_pipeline()
 
+        
 
 elif st.session_state.view == "job_selection":
-    st.subheader("💡 Select Roles for Profile Improvement Guidance")
-    st.write("Choose the roles you're most interested in, and we'll provide tailored guidance on how to strengthen your profile for those positions.")
     
+    st.markdown(
+        '<div class="rr-section-title">💡 Select roles for profile improvement guidance</div>',
+        unsafe_allow_html=True,
+    )
+    st.write(
+        "Choose the roles you are most interested in and you will get tailored guidance "
+        "on how to strengthen your profile for those positions."
+    )
+
     if st.session_state.jobs_data is None:
         with st.spinner("Loading job data..."):
             try:
@@ -338,96 +381,105 @@ elif st.session_state.view == "job_selection":
                     st.session_state.jobs_data = response.json()
                 else:
                     st.error(f"Failed to fetch jobs: {response.status_code}")
-                    if st.button("← Back to Results"):
+                    if st.button("← Back to results"):
                         st.session_state.view = "results"
                         st.rerun()
                     st.stop()
             except Exception as e:
                 st.error(f"Error loading jobs: {str(e)}")
-                if st.button("← Back to Results"):
+                if st.button("← Back to results"):
                     st.session_state.view = "results"
                     st.rerun()
                 st.stop()
-    
+
     job_list = st.session_state.jobs_data.get("aggregation", {}).get("best_matches", [])
-    
+
     if len(job_list) == 0:
         st.warning("No jobs found in aggregation data.")
-        if st.button("← Back to Results"):
+        if st.button("← Back to results"):
             st.session_state.view = "results"
             st.rerun()
     else:
         st.write(f"**{len(job_list)} roles found in your job matches.**")
-        st.write("Select the ones you'd like guidance for:")
-        
+        st.write("Select the ones you would like guidance for:")
+
         selected_indices = []
         for idx, job in enumerate(job_list):
-            job_title = job.get('title', f"Job {idx + 1}")
-            company = job.get('company', "Unknown Company")
-            location = job.get('location_area', "")
-            
+            job_title = job.get("title", f"Job {idx + 1}")
+            company = job.get("company", "Unknown Company")
+            location = job.get("location_area", "")
+
             label = f"{job_title} at {company}"
             if location:
                 label += f" • {location}"
-            
+
             if st.checkbox(label, key=f"job_{idx}"):
                 selected_indices.append(idx)
-        
+
         st.markdown("---")
-        
+
         col1, col2 = st.columns(2)
-        
+
         with col1:
-            if st.button("← Back to Results"):
+            if st.button("← Back to results"):
                 st.session_state.view = "results"
                 st.rerun()
-        
+
         with col2:
-            if st.button("🚀 Get My Roadmap", type="primary", disabled=len(selected_indices) == 0):
+            if st.button("🚀 Get my roadmap", type="primary", disabled=len(selected_indices) == 0):
                 selected_jobs_list = [job_list[i] for i in selected_indices]
-                
+
                 selection_output = {
                     "timestamp": time.strftime("%Y-%m-%d %H:%M:%S"),
                     "user_intent": "profile_improvement_guidance",
                     "selected_count": len(selected_jobs_list),
-                    "selected_jobs": selected_jobs_list
+                    "selected_jobs": selected_jobs_list,
                 }
-                
+
                 try:
                     response = requests.post(
                         f"{API_URL}/save_selection",
                         json=selection_output,
-                        timeout=120
+                        timeout=120,
                     )
-                    
+
                     if response.status_code == 200:
                         result = response.json()
-                        st.success(f"✅ Saved {result['count']} job(s)!")
-                        
+                        st.success(f"✅ Saved {result['count']} job(s).")
+
                         with st.spinner("Launching the advisor... 🚀"):
                             improve_response = requests.post(
                                 f"{API_URL}/start_improvement",
-                                timeout=120
+                                timeout=120,
                             )
-                            
+
                             if improve_response.status_code == 200:
-                                st.success("✅ Analysis started!")
+                                st.success("✅ Analysis started.")
                                 st.session_state.view = "improvement_processing"
                                 st.rerun()
                             else:
-                                st.error(f"❌ Failed to start analysis: {improve_response.text}")
+                                st.error(
+                                    f"❌ Failed to start analysis: {improve_response.text}"
+                                )
                     else:
                         st.error(f"❌ Failed to save: {response.text}")
                 except Exception as e:
                     st.error(f"❌ Error: {str(e)}")
 
+    
 
 elif st.session_state.view == "improvement_processing":
-    st.subheader("💡 Generating Profile Improvement Recommendations")
-    st.write("Our AI advisor is analyzing your profile against the selected roles and preparing personalized guidance.")
-    
+    st.markdown("<div style='margin-top: 0.75rem;'></div>", unsafe_allow_html=True)
+    st.markdown(
+        '<div class="rr-section-title">💡 Generating profile improvement recommendations</div>',
+        unsafe_allow_html=True,
+    )
+    st.write(
+        "The advisor agent is comparing your current profile to selected roles and drafting a focused roadmap."
+    )
+
     auto = st.checkbox("Auto refresh status", value=True, key="auto_improvement")
-    
+
     if auto:
         final_status = _poll_until(target_step="improvement")
     else:
@@ -436,36 +488,38 @@ elif st.session_state.view == "improvement_processing":
         final_status = check_status()
 
     if final_status.get("state") == "done" and final_status.get("step") in (None, "improvement"):
-        st.success("🎉 Profile improvement recommendations are ready!")
+        st.success("🎉 Profile improvement recommendations are ready.")
         st.session_state.view = "improvement_results"
         st.rerun()
     elif final_status.get("state") == "error":
         st.error(f"❌ Error: {final_status.get('error')}")
-        if st.button("← Back to Job Selection"):
+        if st.button("← Back to job selection"):
             st.session_state.view = "job_selection"
             st.rerun()
 
+    
 
 elif st.session_state.view == "improvement_results":
-    st.subheader("🗺️ Your Career Roadmap")
+    st.markdown("<div style='margin-top: 0.75rem;'></div>", unsafe_allow_html=True)
+    st.markdown(
+        '<div class="rr-section-title">🗺️ Your career roadmap</div>',
+        unsafe_allow_html=True,
+    )
+
     col1, col2 = st.columns([3, 1])
     with col1:
-        st.write("**Your personalized profile improvement guide is ready!** Download it or preview it below.")
+        st.write("Your personalized profile improvement guide is ready. Download it or preview it below.")
     with col2:
         try:
             download_response = requests.get(f"{API_URL}/download_improvement", timeout=120)
             if download_response.status_code == 200:
-                st.download_button(
-                    label="📥 Download",
-                    data=download_response.content,
-                    file_name="rolerocket_career_roadmap.md",
-                    mime="text/markdown",
-                )
+                get_pdf_download(download_response.text, "rolerocket_career_roadmap.pdf", "RoleRocket Career Roadmap")
         except Exception as e:
             st.error(f"Error downloading: {e}")
 
     st.markdown("---")
-    st.markdown("### 📖 Roadmap Preview")
+    st.markdown("### 📖 Roadmap preview")
+
     try:
         download_response = requests.get(f"{API_URL}/download_improvement", timeout=120)
         if download_response.status_code == 200:
@@ -476,13 +530,13 @@ elif st.session_state.view == "improvement_results":
         st.error(f"Error loading preview: {e}")
 
     st.markdown("---")
-    
+
     col1, col2 = st.columns(2)
     with col1:
-        if st.button("← Back to Job Matches"):
+        if st.button("← Back to job matches"):
             st.session_state.view = "results"
             st.rerun()
-    
+
     with col2:
-        if st.button("🔄 Process Another Resume"):
+        if st.button("🔄 Process another resume"):
             reset_pipeline()
