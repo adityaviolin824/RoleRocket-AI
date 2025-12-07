@@ -420,10 +420,6 @@ elif st.session_state.view == "job_selection":
 
         col1, col2 = st.columns(2)
 
-        if st.button("← Back to results", type="primary", use_container_width=True):
-            st.session_state.view = "results"
-            st.rerun()
-
         if st.button("🚀 Get my roadmap", type="primary", use_container_width=True):
                 selected_jobs_list = [job_list[i] for i in selected_indices]
 
@@ -463,6 +459,10 @@ elif st.session_state.view == "job_selection":
                         st.error(f"❌ Failed to save: {response.text}")
                 except Exception as e:
                     st.error(f"❌ Error: {str(e)}")
+
+        if st.button("← Back to results", type="primary", use_container_width=True):
+            st.session_state.view = "results"
+            st.rerun()
 
     
 
