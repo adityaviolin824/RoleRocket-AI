@@ -7,7 +7,7 @@ import math
 # Import from helpers package
 from helpers import base_style, spinner, markdown_to_pdf
 
-API_URL = "http://127.0.0.1:8001/" ###########
+API_URL = "https://rolerocket-ai-v2.onrender.com/" ###########
 REQUEST_TIMEOUT = 240
 
 st.set_page_config(page_title="RoleRocket AI", page_icon="🚀", layout="wide")
