@@ -293,7 +293,7 @@ elif st.session_state.view == "intake_processing":
     
 
 elif st.session_state.view == "research_processing":
-    
+    st.markdown("<div style='margin-top: 0.75rem;'></div>", unsafe_allow_html=True)
     st.markdown(
         '<div class="rr-section-title">🔍 Finding the best roles for you</div>',
         unsafe_allow_html=True,
