@@ -1,8 +1,14 @@
 # RoleRocket AI
 
+<p align="center">
+  <img src="frontend_streamlit/helpers/background/RoleRocket_bg.jpg" alt="RoleRocket Background" style="width:1000px; height:400px; max-width:100%;">
+</p>
+
 > Agentic end-to-end career assistant that turns your resume and preferences into job matches, compatibility scores, and tailored profile-improvement advice for your chosen roles.
 
 ---
+
+
 
 ## Live Demo
 
