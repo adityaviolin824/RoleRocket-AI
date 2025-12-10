@@ -21,7 +21,7 @@
 
 ## Overview
 
-RoleRocket AI ingests a resume (PDF, DOCX, or image), extracts structured profile data, and runs a four-phase pipeline: intake and memory, research-optimized mini-profile generation, multi-source job research with deterministic scoring, and a presentation plus advisor phase that produces both ranked job matches and targeted improvement guidance. It is built as an API-first system with a FastAPI backend and a Streamlit frontend, designed to be demoed and inspected in interviews.
+RoleRocket AI ingests a resume (PDF, DOCX, or image), extracts structured profile data, and runs a four-phase pipeline: intake and memory, research-optimized mini-profile generation, multi-source job research with deterministic scoring, and a presentation plus advisor phase that produces both ranked job matches and targeted improvement guidance. I have built it as an API-first, production-style system with a Dockerized FastAPI backend deployed on Render, plus a Streamlit frontend.
 
 ---
 
